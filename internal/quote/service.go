@@ -12,7 +12,7 @@ import (
 var dataFile string
 
 type Service interface {
-	Search(query string, limit int, offset int) SearchResponse
+	Search(query string, limit int, offset int, characterID string, forceFuzzy bool) SearchResponse
 	GetByCharacter(characterID string, limit int) []ParsedQuote
 	Random(characterID string) *ParsedQuote
 	GetCharacters() map[string]string
@@ -53,7 +53,7 @@ func NewService() Service {
 	}
 }
 
-func (s *service) Search(query string, limit int, offset int) SearchResponse {
+func (s *service) Search(query string, limit int, offset int, characterID string, forceFuzzy bool) SearchResponse {
 	if limit <= 0 {
 		limit = 30
 	}
@@ -61,20 +61,24 @@ func (s *service) Search(query string, limit int, offset int) SearchResponse {
 		offset = 0
 	}
 
-	queryLower := strings.ToLower(query)
-	var exactMatches []SearchResult
+	if !forceFuzzy {
+		queryLower := strings.ToLower(query)
+		var exactMatches []SearchResult
 
-	for i := 0; i < len(s.quotes); i++ {
-		if strings.Contains(strings.ToLower(s.quoteTexts[i]), queryLower) {
-			exactMatches = append(exactMatches, SearchResult{
-				Quote: s.quotes[i],
-				Score: 100,
-			})
+		for i := 0; i < len(s.quotes); i++ {
+			if strings.Contains(strings.ToLower(s.quoteTexts[i]), queryLower) {
+				if characterID == "" || s.quotes[i].CharacterID == characterID {
+					exactMatches = append(exactMatches, SearchResult{
+						Quote: s.quotes[i],
+						Score: 100,
+					})
+				}
+			}
 		}
-	}
 
-	if len(exactMatches) > 0 {
-		return paginateResults(exactMatches, limit, offset)
+		if len(exactMatches) > 0 {
+			return paginateResults(exactMatches, limit, offset)
+		}
 	}
 
 	matches := fuzzy.Find(query, s.quoteTexts)
@@ -93,10 +97,12 @@ func (s *service) Search(query string, limit int, offset int) SearchResponse {
 	var fuzzyResults []SearchResult
 	for i := 0; i < len(matches); i++ {
 		if matches[i].Score >= threshold {
-			fuzzyResults = append(fuzzyResults, SearchResult{
-				Quote: s.quotes[matches[i].Index],
-				Score: matches[i].Score,
-			})
+			if characterID == "" || s.quotes[matches[i].Index].CharacterID == characterID {
+				fuzzyResults = append(fuzzyResults, SearchResult{
+					Quote: s.quotes[matches[i].Index],
+					Score: matches[i].Score,
+				})
+			}
 		}
 	}
 

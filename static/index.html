@@ -954,11 +954,7 @@
                 currentOffset = data.offset;
                 currentTotal = data.total;
 
-                let results = data.results || [];
-
-                if (characterId && results.length > 0) {
-                    results = results.filter(r => r.quote.characterId === characterId);
-                }
+                const results = data.results || [];
 
                 renderQuotes(results, query, data.total, data.offset);
             } catch (error) {

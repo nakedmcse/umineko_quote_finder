@@ -37,8 +37,10 @@ func (s *Service) search(ctx *fiber.Ctx) error {
 
 	limit := ctx.QueryInt("limit", 30)
 	offset := ctx.QueryInt("offset", 0)
+	characterID := ctx.Query("character")
+	forceFuzzy := ctx.QueryBool("fuzzy", false)
 
-	response := s.QuoteService.Search(query, limit, offset)
+	response := s.QuoteService.Search(query, limit, offset, characterID, forceFuzzy)
 	return ctx.JSON(fiber.Map{
 		"query":   query,
 		"results": response.Results,
