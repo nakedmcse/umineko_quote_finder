@@ -54,12 +54,58 @@ func NewService() Service {
 }
 
 func (s *service) Search(query string, limit int, offset int) SearchResponse {
-	matches := fuzzy.Find(query, s.quoteTexts)
-	total := len(matches)
-
+	if limit <= 0 {
+		limit = 30
+	}
 	if offset < 0 {
 		offset = 0
 	}
+
+	queryLower := strings.ToLower(query)
+	var exactMatches []SearchResult
+
+	for i := 0; i < len(s.quotes); i++ {
+		if strings.Contains(strings.ToLower(s.quoteTexts[i]), queryLower) {
+			exactMatches = append(exactMatches, SearchResult{
+				Quote: s.quotes[i],
+				Score: 100,
+			})
+		}
+	}
+
+	if len(exactMatches) > 0 {
+		return paginateResults(exactMatches, limit, offset)
+	}
+
+	matches := fuzzy.Find(query, s.quoteTexts)
+	if len(matches) == 0 {
+		return SearchResponse{
+			Results: []SearchResult{},
+			Total:   0,
+			Limit:   limit,
+			Offset:  offset,
+		}
+	}
+
+	topScore := matches[0].Score
+	threshold := topScore / 10
+
+	var fuzzyResults []SearchResult
+	for i := 0; i < len(matches); i++ {
+		if matches[i].Score >= threshold {
+			fuzzyResults = append(fuzzyResults, SearchResult{
+				Quote: s.quotes[matches[i].Index],
+				Score: matches[i].Score,
+			})
+		}
+	}
+
+	return paginateResults(fuzzyResults, limit, offset)
+}
+
+func paginateResults(results []SearchResult, limit int, offset int) SearchResponse {
+	total := len(results)
+
 	if offset >= total {
 		return SearchResponse{
 			Results: []SearchResult{},
@@ -69,25 +115,13 @@ func (s *service) Search(query string, limit int, offset int) SearchResponse {
 		}
 	}
 
-	if limit <= 0 {
-		limit = 30
-	}
-
 	end := offset + limit
 	if end > total {
 		end = total
 	}
 
-	results := make([]SearchResult, end-offset)
-	for i := offset; i < end; i++ {
-		results[i-offset] = SearchResult{
-			Quote: s.quotes[matches[i].Index],
-			Score: matches[i].Score,
-		}
-	}
-
 	return SearchResponse{
-		Results: results,
+		Results: results[offset:end],
 		Total:   total,
 		Limit:   limit,
 		Offset:  offset,
