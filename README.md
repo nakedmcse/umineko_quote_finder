@@ -5,8 +5,9 @@ A quote search engine for Umineko no Naku Koro ni. Search through thousands of l
 ## Features
 
 - Fuzzy search through all dialogue
-- Filter by character
+- Filter by character and episode
 - Random quote generator
+- English/Japanese language toggle
 - Beautiful Umineko-themed web interface
 - Single executable (all assets embedded)
 
@@ -21,13 +22,24 @@ Open http://127.0.0.1:3000
 
 ## API Endpoints
 
-| Endpoint                                | Description                                  |
-|-----------------------------------------|----------------------------------------------|
-| `GET /api/v1/search?q=<query>&limit=50` | Fuzzy search quotes                          |
-| `GET /api/v1/random?character=<id>`     | Get random quote (optional character filter) |
-| `GET /api/v1/character/<id>?limit=50`   | Get quotes by character ID                   |
-| `GET /api/v1/characters`                | List all character IDs and names             |
-| `GET /api/v1/health`                    | Health check                                 |
+| Endpoint                    | Description                                  |
+|-----------------------------|----------------------------------------------|
+| `GET /api/v1/search`        | Fuzzy search quotes                          |
+| `GET /api/v1/random`        | Get random quote                             |
+| `GET /api/v1/character/:id` | Get quotes by character ID                   |
+| `GET /api/v1/characters`    | List all character IDs and names             |
+| `GET /api/v1/health`        | Health check                                 |
+
+### Query Parameters
+
+| Parameter   | Endpoints                      | Description                              |
+|-------------|--------------------------------|------------------------------------------|
+| `q`         | search                         | Search query (required)                  |
+| `lang`      | search, random, character      | Language: `en` (default) or `ja`         |
+| `character` | search, random                 | Filter by character ID                   |
+| `episode`   | search, random, character      | Filter by episode (1-8)                  |
+| `limit`     | search, character              | Results per page (default: 30)           |
+| `offset`    | search, character              | Pagination offset                        |
 
 ### Response Format
 
@@ -82,4 +94,12 @@ docker run -p 3000:3000 umineko-quote
 
 ## Data
 
-The quote data is parsed from Umineko no Naku Koro ni script files. Place your `data.txt` in `internal/quote/` before building.
+Quote data is parsed from Umineko no Naku Koro ni script files. Place language files in `internal/quote/data/` before building:
+
+```
+internal/quote/data/
+├── english.txt
+└── japanese.txt
+```
+
+Additional languages can be added by placing new files in this directory and updating the `langFiles` map in `service.go`.
