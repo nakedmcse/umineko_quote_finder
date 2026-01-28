@@ -20,7 +20,7 @@ func main() {
 	app := fiber.New()
 
 	app.Use(logger.New(logger.Config{
-		Format:     "${time} | ${status} | ${latency} | ${ip} | ${method} ${path} ${queryParams}\n",
+		Format:     "${time} | ${status} | ${latency} | ${method} ${path} ${queryParams}\n",
 		TimeFormat: "2006-01-02 15:04:05",
 	}))
 
