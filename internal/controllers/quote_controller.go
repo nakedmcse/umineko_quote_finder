@@ -7,6 +7,7 @@ func (s *Service) getAllQuoteRoutes() []FSetupRoute {
 		s.setupSearchRoute,
 		s.setupRandomRoute,
 		s.setupByCharacterRoute,
+		s.setupByAudioIDRoute,
 		s.setupCharactersRoute,
 	}
 }
@@ -21,6 +22,10 @@ func (s *Service) setupRandomRoute(routeGroup fiber.Router) {
 
 func (s *Service) setupByCharacterRoute(routeGroup fiber.Router) {
 	routeGroup.Get("/character/:id", s.byCharacter)
+}
+
+func (s *Service) setupByAudioIDRoute(routeGroup fiber.Router) {
+	routeGroup.Get("/quote/:audioId", s.byAudioID)
 }
 
 func (s *Service) setupCharactersRoute(routeGroup fiber.Router) {
@@ -74,6 +79,19 @@ func (s *Service) byCharacter(ctx *fiber.Ctx) error {
 
 	response := s.QuoteService.GetByCharacter(lang, characterID, limit, offset, episode)
 	return ctx.JSON(response)
+}
+
+func (s *Service) byAudioID(ctx *fiber.Ctx) error {
+	lang := ctx.Query("lang", "en")
+	audioID := ctx.Params("audioId")
+
+	quote := s.QuoteService.GetByAudioID(lang, audioID)
+	if quote == nil {
+		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "quote not found",
+		})
+	}
+	return ctx.JSON(quote)
 }
 
 func (s *Service) characters(ctx *fiber.Ctx) error {

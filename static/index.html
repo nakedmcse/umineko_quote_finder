@@ -1010,6 +1010,7 @@
         const langBtns = document.querySelectorAll('.lang-btn');
 
         let currentLang = 'en';
+        let currentAudioId = null;
         let browseMode = false;
         let browseCharacter = '';
         let browseEpisode = 0;
@@ -1075,6 +1076,7 @@
         const PAGE_SIZE = 30;
 
         function renderQuotes(results, query, total, offset) {
+            currentAudioId = null;
             if (!results || results.length === 0) {
                 showEmpty();
                 return;
@@ -1136,6 +1138,7 @@
         }
 
         function renderFeaturedQuote(quote) {
+            currentAudioId = quote.audioId || null;
             resultsContainer.innerHTML = `
                 <article class="featured-quote">
                     <div class="featured-label">✦ A Fragment from the Sea ✦</div>
@@ -1212,6 +1215,23 @@
             } catch (error) {
                 console.error('Failed to get random quote:', error);
                 showEmpty('Failed to retrieve a quote.');
+            }
+        }
+
+        async function getQuoteByAudioId(audioId) {
+            showLoading();
+
+            try {
+                const response = await fetch(`${API_BASE}/quote/${audioId}?lang=${currentLang}`);
+                const quote = await response.json();
+                if (quote.error) {
+                    getRandomQuote();
+                    return;
+                }
+                renderFeaturedQuote(quote);
+            } catch (error) {
+                console.error('Failed to get quote by audioId:', error);
+                getRandomQuote();
             }
         }
 
@@ -1293,6 +1313,7 @@
         }
 
         function renderBrowseResults(data) {
+            currentAudioId = null;
             if (!data.quotes || data.quotes.length === 0) {
                 showEmpty('No dialogue found for this character.');
                 return;
@@ -1362,13 +1383,12 @@
                 langBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
 
-                resultsContainer.innerHTML = '';
                 if (browseMode && browseCharacter) {
-                    browseOffset = 0;
-                    browseCharacterDialogue(browseCharacter, 0, browseEpisode);
+                    browseCharacterDialogue(browseCharacter, browseOffset, browseEpisode);
                 } else if (searchInput.value.trim()) {
-                    currentOffset = 0;
-                    search(searchInput.value, 0);
+                    search(searchInput.value, currentOffset);
+                } else if (currentAudioId) {
+                    getQuoteByAudioId(currentAudioId);
                 } else {
                     getRandomQuote();
                 }

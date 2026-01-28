@@ -14,6 +14,7 @@ var dataFS embed.FS
 type Service interface {
 	Search(query string, lang string, limit int, offset int, characterID string, episode int, forceFuzzy bool) SearchResponse
 	GetByCharacter(lang string, characterID string, limit int, offset int, episode int) CharacterResponse
+	GetByAudioID(lang string, audioID string) *ParsedQuote
 	Random(lang string, characterID string, episode int) *ParsedQuote
 	GetCharacters() map[string]string
 }
@@ -270,6 +271,24 @@ func (s *service) Random(lang string, characterID string, episode int) *ParsedQu
 
 	idx := rand.IntN(len(filtered))
 	return &filtered[idx]
+}
+
+func (s *service) GetByAudioID(lang string, audioID string) *ParsedQuote {
+	if lang == "" {
+		lang = "en"
+	}
+
+	quotes := s.quotes[lang]
+	if quotes == nil {
+		return nil
+	}
+
+	for i := range quotes {
+		if quotes[i].AudioID == audioID {
+			return &quotes[i]
+		}
+	}
+	return nil
 }
 
 func (s *service) GetCharacters() map[string]string {
