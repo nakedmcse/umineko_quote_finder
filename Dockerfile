@@ -17,7 +17,9 @@ WORKDIR /app
 
 COPY --from=builder /app/main .
 
-RUN curl -fSL -o /tmp/voice.zip "https://waifuvault.moe/f/da75978f-6ba4-474c-b063-f3f77a249470/voice.zip" \
+ARG VOICE_ZIP_URL
+RUN test -n "$VOICE_ZIP_URL" || { echo "VOICE_ZIP_URL build arg is required"; exit 1; } \
+    && curl -fSL -o /tmp/voice.zip "$VOICE_ZIP_URL" \
     && mkdir -p internal/quote/data \
     && unzip -qo /tmp/voice.zip -d /tmp/voice \
     && mv /tmp/voice/voice internal/quote/data/audio \

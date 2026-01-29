@@ -22,7 +22,17 @@ Open http://127.0.0.1:3000
 
 ### Voice Audio (Optional)
 
-To enable audio playback, download and extract the voice files:
+Audio playback requires a zip of the voice files. Create a `.env` file in the project root:
+
+```env
+# URL to download the zip
+VOICE_ZIP_URL=https://example.com/voice.zip
+
+# Or a local path to the zip
+VOICE_ZIP_URL=C:\path\to\voice.zip
+```
+
+Then run the setup script:
 
 **Linux / macOS:**
 ```bash
@@ -34,18 +44,34 @@ To enable audio playback, download and extract the voice files:
 .\setup_audio.ps1
 ```
 
+The script will detect whether `VOICE_ZIP_URL` is a local file or a URL and handle it accordingly. If the audio directory already exists, it skips extraction.
+
 The app works without audio files — quotes will display normally but without playback controls.
+
+### Expected zip structure
+
+The zip must contain a `voice/` directory at its root with character ID subdirectories:
+
+```
+voice.zip
+└── voice/
+    ├── 00/
+    │   ├── 00100001.ogg
+    │   └── ...
+    ├── 01/
+    └── ...
+```
 
 ## API Endpoints
 
-| Endpoint                    | Description                                  |
-|-----------------------------|----------------------------------------------|
-| `GET /api/v1/search`        | Fuzzy search quotes                          |
-| `GET /api/v1/random`        | Get random quote                             |
-| `GET /api/v1/character/:id` | Get quotes by character ID                   |
-| `GET /api/v1/characters`    | List all character IDs and names             |
+| Endpoint                             | Description                        |
+|--------------------------------------|------------------------------------|
+| `GET /api/v1/search`                 | Fuzzy search quotes                |
+| `GET /api/v1/random`                 | Get random quote                   |
+| `GET /api/v1/character/:id`          | Get quotes by character ID         |
+| `GET /api/v1/characters`             | List all character IDs and names   |
 | `GET /api/v1/audio/:charId/:audioId` | Stream audio file for a voice line |
-| `GET /api/v1/health`        | Health check                                 |
+| `GET /api/v1/health`                 | Health check                       |
 
 ### Query Parameters
 
@@ -104,11 +130,10 @@ $env:GOOS="linux"; $env:GOARCH="amd64"; go build -o umineko_quote_linux .; $env:
 
 ## Docker
 
-The Docker build automatically downloads and extracts voice files.
+Requires a `.env` file with `VOICE_ZIP_URL` set (URL only for Docker builds).
 
 ```bash
-docker build -t umineko-quote .
-docker run -p 3000:3000 umineko-quote
+docker compose up -d --build
 ```
 
 ## Data
@@ -119,7 +144,7 @@ Quote data is parsed from Umineko no Naku Koro ni script files:
 internal/quote/data/
 ├── english.txt
 ├── japanese.txt
-└── audio/          (downloaded via setup script or Docker build)
+└── audio/          (extracted via setup script or Docker build)
     ├── 00/
     ├── 01/
     ├── ...

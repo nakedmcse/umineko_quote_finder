@@ -1,0 +1,10 @@
+services:
+  umineko-quote:
+    build:
+      context: .
+      args:
+        VOICE_ZIP_URL: ${VOICE_ZIP_URL}
+    container_name: umineko-quote
+    restart: unless-stopped
+    ports:
+      - "4323:3000"

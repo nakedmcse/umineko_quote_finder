@@ -1,20 +1,42 @@
 $AudioDir = "internal\quote\data\audio"
-$ZipUrl = "https://waifuvault.moe/f/da75978f-6ba4-474c-b063-f3f77a249470/voice.zip"
-$TmpZip = "$env:TEMP\voice.zip"
-$TmpDir = "$env:TEMP\voice"
+
+$EnvFile = Join-Path $PSScriptRoot ".env"
+if (Test-Path $EnvFile) {
+    Get-Content $EnvFile | ForEach-Object {
+        if ($_ -match '^\s*([^#][^=]+)=(.*)$') {
+            [System.Environment]::SetEnvironmentVariable($Matches[1].Trim(), $Matches[2].Trim(), 'Process')
+        }
+    }
+}
+
+$ZipSource = $env:VOICE_ZIP_URL
+if (-not $ZipSource) {
+    Write-Error "VOICE_ZIP_URL is not set. Create a .env file with VOICE_ZIP_URL=<url or path>"
+    exit 1
+}
 
 if (Test-Path $AudioDir) {
     Write-Output "Audio directory already exists at $AudioDir, skipping download."
     exit 0
 }
 
-Write-Output "Downloading voice files..."
-Invoke-WebRequest -Uri $ZipUrl -OutFile $TmpZip
+$TmpDir = "$env:TEMP\voice"
 
-Write-Output "Extracting..."
-New-Item -ItemType Directory -Force -Path "internal\quote\data" | Out-Null
-Expand-Archive -Path $TmpZip -DestinationPath $TmpDir
-Move-Item -Path "$TmpDir\voice" -Destination $AudioDir
+if (Test-Path $ZipSource) {
+    Write-Output "Extracting from local file: $ZipSource"
+    New-Item -ItemType Directory -Force -Path "internal\quote\data" | Out-Null
+    Expand-Archive -Path $ZipSource -DestinationPath $TmpDir
+    Move-Item -Path "$TmpDir\voice" -Destination $AudioDir
+    Remove-Item -Recurse -Force $TmpDir
+} else {
+    $TmpZip = "$env:TEMP\voice.zip"
+    Write-Output "Downloading voice files..."
+    Invoke-WebRequest -Uri $ZipSource -OutFile $TmpZip
+    Write-Output "Extracting..."
+    New-Item -ItemType Directory -Force -Path "internal\quote\data" | Out-Null
+    Expand-Archive -Path $TmpZip -DestinationPath $TmpDir
+    Move-Item -Path "$TmpDir\voice" -Destination $AudioDir
+    Remove-Item -Recurse -Force $TmpZip, $TmpDir
+}
 
-Remove-Item -Recurse -Force $TmpZip, $TmpDir
 Write-Output "Done. Audio files extracted to $AudioDir"
