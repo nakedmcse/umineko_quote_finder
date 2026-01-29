@@ -11,22 +11,25 @@ type Indexer interface {
 	LowerTexts(lang string) []string
 	FilteredIndices(lang string, characterID string, episode int) []int
 	CharacterIndices(lang string, characterID string) []int
+	NonNarratorIndices(lang string) []int
 	AudioFilePath(characterId string, audioId string) string
 }
 
 type indexer struct {
-	quoteLowerTexts map[string][]string
-	characterIndex  map[string]map[string][]int
-	episodeIndex    map[string]map[int][]int
-	quotes          map[string][]ParsedQuote
-	audioDir        string
+	quoteLowerTexts  map[string][]string
+	characterIndex   map[string]map[string][]int
+	episodeIndex     map[string]map[int][]int
+	nonNarratorIndex map[string][]int
+	quotes           map[string][]ParsedQuote
+	audioDir         string
 }
 
 type langIndexResult struct {
-	lang       string
-	lowerTexts []string
-	charIdx    map[string][]int
-	epIdx      map[int][]int
+	lang           string
+	lowerTexts     []string
+	charIdx        map[string][]int
+	epIdx          map[int][]int
+	nonNarratorIdx []int
 }
 
 func NewIndexer(quotes map[string][]ParsedQuote, audioDir string) Indexer {
@@ -41,6 +44,7 @@ func NewIndexer(quotes map[string][]ParsedQuote, audioDir string) Indexer {
 			lowerTexts := make([]string, len(parsed))
 			charIdx := make(map[string][]int)
 			epIdx := make(map[int][]int)
+			var nonNarratorIdx []int
 
 			for i := 0; i < len(parsed); i++ {
 				lowerTexts[i] = strings.ToLower(parsed[i].Text)
@@ -48,13 +52,17 @@ func NewIndexer(quotes map[string][]ParsedQuote, audioDir string) Indexer {
 				if parsed[i].Episode > 0 {
 					epIdx[parsed[i].Episode] = append(epIdx[parsed[i].Episode], i)
 				}
+				if parsed[i].CharacterID != "narrator" {
+					nonNarratorIdx = append(nonNarratorIdx, i)
+				}
 			}
 
 			results <- langIndexResult{
-				lang:       lang,
-				lowerTexts: lowerTexts,
-				charIdx:    charIdx,
-				epIdx:      epIdx,
+				lang:           lang,
+				lowerTexts:     lowerTexts,
+				charIdx:        charIdx,
+				epIdx:          epIdx,
+				nonNarratorIdx: nonNarratorIdx,
 			}
 		}(lang, parsed)
 	}
@@ -65,17 +73,19 @@ func NewIndexer(quotes map[string][]ParsedQuote, audioDir string) Indexer {
 	}()
 
 	idx := &indexer{
-		quoteLowerTexts: make(map[string][]string),
-		characterIndex:  make(map[string]map[string][]int),
-		episodeIndex:    make(map[string]map[int][]int),
-		quotes:          quotes,
-		audioDir:        audioDir,
+		quoteLowerTexts:  make(map[string][]string),
+		characterIndex:   make(map[string]map[string][]int),
+		episodeIndex:     make(map[string]map[int][]int),
+		nonNarratorIndex: make(map[string][]int),
+		quotes:           quotes,
+		audioDir:         audioDir,
 	}
 
 	for r := range results {
 		idx.quoteLowerTexts[r.lang] = r.lowerTexts
 		idx.characterIndex[r.lang] = r.charIdx
 		idx.episodeIndex[r.lang] = r.epIdx
+		idx.nonNarratorIndex[r.lang] = r.nonNarratorIdx
 	}
 
 	return idx
@@ -102,6 +112,10 @@ func (idx *indexer) AudioFilePath(characterId string, audioId string) string {
 		return ""
 	}
 	return path
+}
+
+func (idx *indexer) NonNarratorIndices(lang string) []int {
+	return idx.nonNarratorIndex[lang]
 }
 
 func (idx *indexer) FilteredIndices(lang string, characterID string, episode int) []int {

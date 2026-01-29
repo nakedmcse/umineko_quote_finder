@@ -47,6 +47,7 @@ func NewParser() Parser {
 			{regexp.MustCompile(`\{p:2:([^}]+)\}?`), `<span class="blue-truth">$1</span>`, "$1"},
 			{regexp.MustCompile(`\{ruby:([^:]+):([^}]+)\}`), `<ruby>$2<rp>(</rp><rt>$1</rt><rp>)</rp></ruby>`, "$2 ($1)"},
 			{regexp.MustCompile(`\{i:([^}]+)\}`), `<em>$1</em>`, "$1"},
+			{regexp.MustCompile(`\{a:[^:]*:(.*)\}`), "$1", "$1"},
 			{regexp.MustCompile(`\{[a-z]+:[^}]*\}`), "", ""},
 		},
 	}
@@ -146,13 +147,37 @@ func (p *parser) parseNarratorLine(line string) *ParsedQuote {
 		return nil
 	}
 
+	characterID := "narrator"
+	character := CharacterNames.GetCharacterName("narrator")
+	audioID := ""
+	episode := 0
+
+	allMatches := p.voiceMetaRegex.FindAllStringSubmatch(line, -1)
+	if len(allMatches) > 0 && len(allMatches[0]) >= 3 {
+		characterID = allMatches[0][1]
+		character = CharacterNames.GetCharacterName(characterID)
+		firstAudioID := allMatches[0][2]
+		episode = p.parseEpisodeFromAudioID(firstAudioID)
+
+		seen := map[string]bool{}
+		var audioIDs []string
+		for i := 0; i < len(allMatches); i++ {
+			id := allMatches[i][2]
+			if !seen[id] {
+				seen[id] = true
+				audioIDs = append(audioIDs, id)
+			}
+		}
+		audioID = strings.Join(audioIDs, ", ")
+	}
+
 	return &ParsedQuote{
 		Text:        text,
 		TextHtml:    textHtml,
-		CharacterID: "narrator",
-		Character:   CharacterNames.GetCharacterName("narrator"),
-		AudioID:     "",
-		Episode:     0,
+		CharacterID: characterID,
+		Character:   character,
+		AudioID:     audioID,
+		Episode:     episode,
 	}
 }
 

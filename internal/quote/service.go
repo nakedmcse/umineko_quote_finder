@@ -221,8 +221,12 @@ func (s *service) Random(lang string, characterID string, episode int) *ParsedQu
 	}
 
 	if characterID == "" && episode <= 0 {
-		idx := rand.IntN(len(quotes))
-		return &quotes[idx]
+		indices := s.indexer.NonNarratorIndices(lang)
+		if len(indices) == 0 {
+			return nil
+		}
+		pick := indices[rand.IntN(len(indices))]
+		return &quotes[pick]
 	}
 
 	indices := s.indexer.FilteredIndices(lang, characterID, episode)
