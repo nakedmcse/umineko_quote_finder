@@ -153,7 +153,7 @@ func (p *parser) parseNarratorLine(line string) *ParsedQuote {
 	episode := 0
 
 	allMatches := p.voiceMetaRegex.FindAllStringSubmatch(line, -1)
-	if len(allMatches) > 0 && len(allMatches[0]) >= 3 {
+	if len(allMatches) > 0 && len(allMatches[0]) >= 3 && strings.Contains(line, "{a:") {
 		characterID = allMatches[0][1]
 		character = CharacterNames.GetCharacterName(characterID)
 		firstAudioID := allMatches[0][2]
