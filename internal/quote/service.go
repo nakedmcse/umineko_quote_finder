@@ -269,8 +269,13 @@ func (s *service) GetByAudioID(lang string, audioID string) *ParsedQuote {
 	}
 
 	for i := range quotes {
-		if quotes[i].AudioID == audioID || strings.Contains(quotes[i].AudioID, audioID) {
+		if quotes[i].AudioID == audioID {
 			return &quotes[i]
+		}
+		for _, id := range strings.Split(quotes[i].AudioID, ", ") {
+			if id == audioID {
+				return &quotes[i]
+			}
 		}
 	}
 	return nil
