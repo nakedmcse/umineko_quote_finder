@@ -193,10 +193,13 @@
         } else {
             clipsHTML = `<div class="audio-clips">${individualClips}</div>`;
         }
+        const savedVolume = localStorage.getItem('uminekoVolume') ?? "1.0";
+        const volume = Math.floor(parseFloat(savedVolume) * 100);
         return `<div class="audio-player">
             ${clipsHTML}
             <div class="audio-controls">
                 <div class="audio-track"><div class="audio-progress"></div></div>
+                <div class="audio-volume"><span>VOL</span><input class="audio-volume-slider" type="range" min="0" max="100" step="1" value="${volume}"</div>
                 <span class="audio-time">0:00 / 0:00</span>
             </div>
         </div>`;
@@ -235,6 +238,12 @@
         activePlayer = null;
     }
 
+    function setVolume(volume) {
+        if (!activePlayer) return;
+        activeAudio.volume = volume;
+        localStorage.setItem('uminekoVolume', volume.toString());
+    }
+
     function playAudioUrl(url, btn) {
         const player = btn.closest('.audio-player');
         if (activeAudio && activeBtn === btn) {
@@ -252,6 +261,20 @@
 
         if (!activeAudio) {
             activeAudio = new Audio();
+            const savedVolume = localStorage.getItem('uminekoVolume');
+            if (savedVolume) {
+                activeAudio.volume = parseFloat(savedVolume);
+            }
+            if (player) {
+                const volumeSelector = player.querySelector('.audio-volume-slider');
+                if (volumeSelector) {
+                    volumeSelector.oninput = null;
+                    volumeSelector.addEventListener('input', () => {
+                        const v = parseFloat(volumeSelector.value) / 100;
+                        setVolume(v);
+                    })
+                }
+            }
             activeAudio.addEventListener('timeupdate', () => {
                 if (!activePlayer) return;
                 const progress = activePlayer.querySelector('.audio-progress');

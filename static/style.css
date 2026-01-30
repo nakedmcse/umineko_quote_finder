@@ -960,6 +960,16 @@ body {
     display: flex;
 }
 
+.audio-volume {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.audio-volume-slider {
+    width: 120px;
+}
+
 .audio-track {
     flex: 1;
     height: 4px;
