@@ -27,7 +27,7 @@
     let browseOffset = 0;
     let browseTotal = 0;
 
-    const contentTypeLabels = { tea: 'Tea Party', ura: 'Omake' };
+    const contentTypeLabels = { tea: 'Tea Party', ura: '????', omake: 'Omake' };
 
     function episodeLabel(quote) {
         if (!quote.episode) {

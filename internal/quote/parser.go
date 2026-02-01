@@ -36,6 +36,8 @@ type (
 		episodeRegex      *regexp.Regexp
 		teaRegex          *regexp.Regexp
 		uraRegex          *regexp.Regexp
+		omakeRegex        *regexp.Regexp
+		unclosedTagRegex  *regexp.Regexp
 		cleanupPatterns   []string
 		textRules         []textRule
 	}
@@ -67,6 +69,8 @@ func NewParser() Parser {
 		episodeRegex:      regexp.MustCompile(`^new_episode (\d+)\r?$`),
 		teaRegex:          regexp.MustCompile(`^new_tea (\d+)\r?$`),
 		uraRegex:          regexp.MustCompile(`^new_ura (\d+)\r?$`),
+		omakeRegex:        regexp.MustCompile(`^\*o(\d+)_`),
+		unclosedTagRegex:  regexp.MustCompile(`\{[a-zA-Z]+:(?:[^{}:]*:)*`),
 		cleanupPatterns: []string{
 			"`[@]", "`[\\]", "`[|]", "`\"", "\"`",
 			"[@]", "[\\]", "[|]",
@@ -173,6 +177,11 @@ func (p *parser) extractText(line string) (string, string) {
 		}
 	}
 
+	// Strip leftover unclosed formatting tags (missing closing }).
+	// Removes the tag prefix (e.g. "{p:0:", "{i:", "{a:c:") but keeps the content.
+	textHtml = p.unclosedTagRegex.ReplaceAllString(textHtml, "")
+	plainText = p.unclosedTagRegex.ReplaceAllString(plainText, "")
+
 	return plainText, textHtml
 }
 
@@ -252,6 +261,14 @@ func (p *parser) ParseAll(lines []string) []ParsedQuote {
 			}
 			continue
 		}
+		if matches := p.omakeRegex.FindStringSubmatch(line); len(matches) >= 2 {
+			ep, err := strconv.Atoi(matches[1])
+			if err == nil {
+				currentEpisode = ep
+				currentContentType = "omake"
+			}
+			continue
+		}
 
 		parsed := p.parseLine(line)
 		if parsed == nil {
@@ -260,7 +277,7 @@ func (p *parser) ParseAll(lines []string) []ParsedQuote {
 		if parsed == nil || len(parsed.Text) <= 10 {
 			continue
 		}
-		if parsed.Episode == 0 && currentEpisode > 0 {
+		if currentEpisode > 0 {
 			parsed.Episode = currentEpisode
 		}
 		parsed.ContentType = currentContentType

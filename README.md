@@ -105,7 +105,7 @@ voice.zip
 }
 ```
 
-The `contentType` field distinguishes content sections: `""` for main episodes, `"tea"` for tea parties, and `"ura"` for omakes (bonus content).
+The `contentType` field distinguishes content sections: `""` for main episodes, `"tea"` for tea parties, `"ura"` for ???? chapters, and `"omake"` for omakes (bonus content).
 
 ## Build
 
