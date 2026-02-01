@@ -43,6 +43,8 @@ jobs:
           context: .
           file: Dockerfile.ci
           push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           tags: |
             ${{ env.IMAGE }}:latest
             ${{ env.IMAGE }}:${{ github.sha }}
