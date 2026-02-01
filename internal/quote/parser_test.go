@@ -1,0 +1,1071 @@
+package quote
+
+import (
+	"strings"
+	"testing"
+)
+
+func TestParseAll_EpisodeAndContentTypes(t *testing.T) {
+	p := NewParser()
+
+	type testCase struct {
+		name            string
+		enLines         []string
+		jaLines         []string
+		wantEpisode     int
+		wantContentType string
+		wantCharID      string
+		wantCharName    string
+		wantAudioID     string
+		enTextContains  []string
+		jaTextContains  []string
+	}
+
+	tests := []testCase{
+		{
+			name: "episode 1 regular - Nanjo",
+			enLines: []string{
+				"new_episode 1",
+				"flush 10,167",
+				"msgwnd_nan",
+				"d [lv 0*\"19\"*\"11900001\"]`\"............Again. `[@][lv 0*\"19\"*\"11900002\"]`...So, you still haven't overcome your love of alcohol?\" `[\\]",
+			},
+			jaLines: []string{
+				"new_episode 1",
+				"flush 10,167",
+				"msgwnd_nan",
+				"d [lv 0*\"19\"*\"11900001\"]`\"\u2026\u2026\u2026\u2026\u2026\u307e\u305f\u3002`[@][lv 0*\"19\"*\"11900002\"]`\u2026\u304a\u9152\u3092\u5603\u307e\u308c\u307e\u3057\u305f\u306a\uff1f\u300d`[\\]",
+			},
+			wantEpisode:     1,
+			wantContentType: "",
+			wantCharID:      "19",
+			wantCharName:    "NanjoTerumasa",
+			wantAudioID:     "11900001, 11900002",
+			enTextContains:  []string{"Again", "alcohol"},
+			jaTextContains:  []string{"また", "お酒"},
+		},
+		{
+			name: "episode 5 regular - Beatrice d2 line",
+			enLines: []string{
+				"new_episode 5",
+				"msgwnd_bea",
+				"d2 [lv 0*\"27\"*\"50700001\"]`\"You idiot!! `[@][lv 0*\"27\"*\"50700002\"]`Isn't it obvious?!! `[@][#][*][lv 0*\"27\"*\"50700003\"]`It'll be fun to kill her and see your face twist in pain, why else?!! `[@][lv 0*\"27\"*\"50700004\"]`Gahyahahahahahahaha!!\" `[\\]",
+			},
+			jaLines: []string{
+				"new_episode 5",
+				"msgwnd_bea",
+				"d2 [lv 0*\"27\"*\"50700001\"]`\"\u3053\u306e\u99ac\u9e7f\u304c\u30c3\uff01\uff01`[@][lv 0*\"27\"*\"50700002\"]`\u3000\u6c7a\u307e\u3063\u3066\u304a\u308d\u3046\u304c\u30c3\uff01\uff01`[@][#][*][lv 0*\"27\"*\"50700003\"]`\u3000\u6bba\u3057\u305f\u3089\u305d\u306a\u305f\u304c\u6b6a\u3081\u308b\u3060\u308d\u3046\u305d\u306e\u8868\u60c5\u304c\u697d\u3057\u3044\u304b\u3089\u306e\u4ed6\u306b\u4f55\u306e\u7406\u7531\u304c\u5fc5\u8981\u306a\u306e\u304b\u30c3\uff01\uff01`[@][lv 0*\"27\"*\"50700004\"]`\u3000\u304f\u3063\u3072\u3083\u306f\u306f\u306f\u306f\u306f\u306f\u306f\u306f\u306f\uff01\uff01\u300d`[\\]",
+			},
+			wantEpisode:     5,
+			wantContentType: "",
+			wantCharID:      "27",
+			wantCharName:    "Beatrice",
+			wantAudioID:     "50700001, 50700002, 50700003, 50700004",
+			enTextContains:  []string{"You idiot", "kill her"},
+			jaTextContains:  []string{"この馬鹿", "殺したら"},
+		},
+		{
+			name: "episode 8 regular - Battler",
+			enLines: []string{
+				"new_episode 8",
+				"msgwnd_but",
+				"d [lv 0*\"10\"*\"80100001\"]`\"Are you listening, Ange? `[@][lv 0*\"10\"*\"80100002\"]`Take good care of this.\" `[\\]",
+			},
+			jaLines: []string{
+				"new_episode 8",
+				"msgwnd_but",
+				"d [lv 0*\"10\"*\"80100001\"]`\"\u805e\u3044\u3066\u308b\u304b\u3001\u7e01\u5bff\u3002`[@][lv 0*\"10\"*\"80100002\"]`\u3000\u3053\u308c\u3092\u5927\u4e8b\u306b\u3057\u308d\u300d`[\\]",
+			},
+			wantEpisode:     8,
+			wantContentType: "",
+			wantCharID:      "10",
+			wantCharName:    "Battler",
+			wantAudioID:     "80100001, 80100002",
+			enTextContains:  []string{"listening", "Ange"},
+			jaTextContains:  []string{"縁寿"},
+		},
+		{
+			name: "tea party 1 - Battler",
+			enLines: []string{
+				"new_tea 1",
+				"msgwnd_but",
+				"d [lv 0*\"10\"*\"90100001\"]`\"Hey, everyone, good job finishing \"Umineko no Naku Koro ni\"! `[@][lv 0*\"10\"*\"90100002\"]`Man, I still didn't have a clue what was going on when the story ended!\" `[\\]",
+			},
+			jaLines: []string{
+				"new_tea 1",
+				"msgwnd_but",
+				"d [lv 0*\"10\"*\"90100001\"]`\"\u304a\u30fc\u3001\u307f\u3093\u306a\u300e\u3046\u307f\u306d\u3053\u306e\u306a\u304f\u9803\u306b\u300f\u3001\u304a\u75b2\u308c\u3055\u3093\uff01`[@][lv 0*\"10\"*\"90100002\"]`\u3000\u3084\u308c\u3084\u308c\u3001\u308f\u3051\u304c\u308f\u304b\u3093\u306a\u3044\u5185\u306b\u7269\u8a9e\u304c\u7d42\u308f\u3063\u3061\u307e\u3063\u305f\u306a\u3041\uff01\u300d`[\\]",
+			},
+			wantEpisode:     1,
+			wantContentType: "tea",
+			wantCharID:      "10",
+			wantCharName:    "Battler",
+			wantAudioID:     "90100001, 90100002",
+			enTextContains:  []string{"Hey, everyone", "Umineko"},
+			jaTextContains:  []string{"おー、みんな", "うみねこ"},
+		},
+		{
+			name: "tea party 1 - Maria",
+			enLines: []string{
+				"new_tea 1",
+				"d [lv 0*\"13\"*\"90400001\"]`\"Uu-. `[@][lv 0*\"13\"*\"90400002\"]`Definitely a bad ending. `[@][lv 0*\"13\"*\"90400003\"]`Uu-.\" `[\\]",
+			},
+			jaLines: []string{
+				"new_tea 1",
+				"d [lv 0*\"13\"*\"90400001\"]`\"\u3046\u30fc\u3002`[@][lv 0*\"13\"*\"90400002\"]`\u304d\u3063\u3068\u30d0\u30c3\u30c9\u30a8\u30f3\u30c9\u3002`[@][lv 0*\"13\"*\"90400003\"]`\u3046\u30fc\u300d`[\\]",
+			},
+			wantEpisode:     1,
+			wantContentType: "tea",
+			wantCharID:      "13",
+			wantCharName:    "Maria",
+			wantAudioID:     "90400001, 90400002, 90400003",
+			enTextContains:  []string{"Uu-", "bad ending"},
+			jaTextContains:  []string{"うー", "バッドエンド"},
+		},
+		{
+			name: "tea party 5 - Bernkastel",
+			enLines: []string{
+				"new_tea 5",
+				"d [lv 0*\"28\"*\"52100771\"]`\"...Erika, Dlanor.\" `[\\]",
+			},
+			jaLines: []string{
+				"new_tea 5",
+				"d [lv 0*\"28\"*\"52100771\"]`\"\u2026\u2026\u30f1\u30ea\u30ab\u3001\u30c9\u30e9\u30ce\u30fc\u30eb\u300d`[\\]",
+			},
+			wantEpisode:     5,
+			wantContentType: "tea",
+			wantCharID:      "28",
+			wantCharName:    "Bernkastel",
+			wantAudioID:     "52100771",
+			enTextContains:  []string{"Erika", "Dlanor"},
+			jaTextContains:  []string{"ヱリカ", "ドラノール"},
+		},
+		{
+			name: "ura 1 - Beatrice",
+			enLines: []string{
+				"new_ura 1",
+				"msgwnd_bea",
+				"d [lv 0*\"27\"*\"90700088\"]`\"...What sort of tea should I prepare next? `[@][lv 0*\"27\"*\"90700089\"]`You have free choice of any brand that ever was throughout the ages.\" `[\\]",
+			},
+			jaLines: []string{
+				"new_ura 1",
+				"msgwnd_bea",
+				"d [lv 0*\"27\"*\"90700088\"]`\"\u2026\u6b21\u306f\u4f55\u306e\u7d05\u8336\u3092\u6df9\u308c\u3088\u3046\u304b\uff1f`[@][lv 0*\"27\"*\"90700089\"]`\u3000\u53e4\u4eca\u306e\u3042\u308a\u3068\u3042\u3089\u3086\u308b\u9298\u8336\u3092\u62ab\u9732\u3057\u3088\u3046\u305e\u300d`[\\]",
+			},
+			wantEpisode:     1,
+			wantContentType: "ura",
+			wantCharID:      "27",
+			wantCharName:    "Beatrice",
+			wantAudioID:     "90700088, 90700089",
+			enTextContains:  []string{"tea", "prepare"},
+			jaTextContains:  []string{"紅茶", "淹れよう"},
+		},
+		{
+			name: "ura 1 - Bernkastel",
+			enLines: []string{
+				"new_ura 1",
+				"d [lv 0*\"28\"*\"92100001\"]`\"...Dried plum black tea. `[@][lv 0*\"28\"*\"92100002\"]`...The kind that goes for 200 yen a pack.\" `[\\]",
+			},
+			jaLines: []string{
+				"new_ura 1",
+				"d [lv 0*\"28\"*\"92100001\"]`\"\u2026\u2026\u6885\u5e72\u7d05\u8336\u3002`[@][lv 0*\"28\"*\"92100002\"]`\u2026\u2026\u6885\u5e72\u306f\uff11\u30d1\u30c3\u30af\uff12\uff10\uff10\u5186\u306e\u30e4\u30c4\u3088\u300d`[\\]",
+			},
+			wantEpisode:     1,
+			wantContentType: "ura",
+			wantCharID:      "28",
+			wantCharName:    "Bernkastel",
+			wantAudioID:     "92100001, 92100002",
+			enTextContains:  []string{"Dried plum", "200 yen"},
+			jaTextContains:  []string{"梅干紅茶", "２００円"},
+		},
+		{
+			name: "omake 1 - Jessica (English only)",
+			enLines: []string{
+				"*o1_0",
+				"bgmplay 89,71,0",
+				"*o1_1",
+				"d [lv 0*\"04\"*\"10200442\"]`\"KyaaaaaAAAAAAaaaaaAAaa!!!\"`[\\]",
+			},
+			wantEpisode:     1,
+			wantContentType: "omake",
+			wantCharID:      "04",
+			wantCharName:    "Jessica",
+			wantAudioID:     "10200442",
+			enTextContains:  []string{"KyaaaaaAAAAAAaaaaaAAaa"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			enQuotes := p.ParseAll(tt.enLines)
+			if len(enQuotes) == 0 {
+				t.Fatal("EN: expected at least 1 quote, got 0")
+			}
+			en := enQuotes[0]
+
+			if en.Episode != tt.wantEpisode {
+				t.Errorf("EN episode: got %d, want %d", en.Episode, tt.wantEpisode)
+			}
+			if en.ContentType != tt.wantContentType {
+				t.Errorf("EN contentType: got %q, want %q", en.ContentType, tt.wantContentType)
+			}
+			if en.CharacterID != tt.wantCharID {
+				t.Errorf("EN characterID: got %q, want %q", en.CharacterID, tt.wantCharID)
+			}
+			if en.Character != tt.wantCharName {
+				t.Errorf("EN character: got %q, want %q", en.Character, tt.wantCharName)
+			}
+			if en.AudioID != tt.wantAudioID {
+				t.Errorf("EN audioID: got %q, want %q", en.AudioID, tt.wantAudioID)
+			}
+			for _, sub := range tt.enTextContains {
+				if !strings.Contains(en.Text, sub) {
+					t.Errorf("EN text %q missing substring %q", en.Text, sub)
+				}
+			}
+
+			if tt.jaLines != nil {
+				jaQuotes := p.ParseAll(tt.jaLines)
+				if len(jaQuotes) == 0 {
+					t.Fatal("JA: expected at least 1 quote, got 0")
+				}
+				ja := jaQuotes[0]
+
+				if ja.Episode != tt.wantEpisode {
+					t.Errorf("JA episode: got %d, want %d", ja.Episode, tt.wantEpisode)
+				}
+				if ja.ContentType != tt.wantContentType {
+					t.Errorf("JA contentType: got %q, want %q", ja.ContentType, tt.wantContentType)
+				}
+				if ja.CharacterID != tt.wantCharID {
+					t.Errorf("JA characterID: got %q, want %q", ja.CharacterID, tt.wantCharID)
+				}
+				if ja.Character != tt.wantCharName {
+					t.Errorf("JA character: got %q, want %q", ja.Character, tt.wantCharName)
+				}
+				if ja.AudioID != tt.wantAudioID {
+					t.Errorf("JA audioID: got %q, want %q", ja.AudioID, tt.wantAudioID)
+				}
+				for _, sub := range tt.jaTextContains {
+					if !strings.Contains(ja.Text, sub) {
+						t.Errorf("JA text %q missing substring %q", ja.Text, sub)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestParseAll_ContentTypeTransitions(t *testing.T) {
+	p := NewParser()
+
+	// Simulate a sequence: episode → tea → ura → new episode (resets content type)
+	lines := []string{
+		"new_episode 1",
+		"d [lv 0*\"19\"*\"11900001\"]`\"............Again. `[@][lv 0*\"19\"*\"11900002\"]`...So, you still haven't overcome your love of alcohol?\" `[\\]",
+		"new_tea 1",
+		"d [lv 0*\"10\"*\"90100001\"]`\"Hey, everyone, good job finishing the story! `[@][lv 0*\"10\"*\"90100002\"]`Man, I still didn't have a clue what was going on!\" `[\\]",
+		"new_ura 1",
+		"d [lv 0*\"27\"*\"90700088\"]`\"...What sort of tea should I prepare next? `[@][lv 0*\"27\"*\"90700089\"]`You have free choice of any brand.\" `[\\]",
+		"new_episode 2",
+		"d [lv 0*\"10\"*\"20100001\"]`\"The second episode begins here with a long enough line.\" `[\\]",
+	}
+
+	quotes := p.ParseAll(lines)
+	if len(quotes) != 4 {
+		t.Fatalf("expected 4 quotes, got %d", len(quotes))
+	}
+
+	// Episode 1 regular
+	if quotes[0].Episode != 1 || quotes[0].ContentType != "" {
+		t.Errorf("quote 0: got ep=%d ct=%q, want ep=1 ct=\"\"", quotes[0].Episode, quotes[0].ContentType)
+	}
+
+	// Tea party 1
+	if quotes[1].Episode != 1 || quotes[1].ContentType != "tea" {
+		t.Errorf("quote 1: got ep=%d ct=%q, want ep=1 ct=\"tea\"", quotes[1].Episode, quotes[1].ContentType)
+	}
+
+	// Ura 1
+	if quotes[2].Episode != 1 || quotes[2].ContentType != "ura" {
+		t.Errorf("quote 2: got ep=%d ct=%q, want ep=1 ct=\"ura\"", quotes[2].Episode, quotes[2].ContentType)
+	}
+
+	// Episode 2 regular — content type must be reset
+	if quotes[3].Episode != 2 || quotes[3].ContentType != "" {
+		t.Errorf("quote 3: got ep=%d ct=%q, want ep=2 ct=\"\"", quotes[3].Episode, quotes[3].ContentType)
+	}
+}
+
+func TestParseAll_OmakeTransition(t *testing.T) {
+	p := NewParser()
+
+	lines := []string{
+		"new_episode 8",
+		"d [lv 0*\"10\"*\"80100001\"]`\"Episode 8 content with sufficient length for the test.\" `[\\]",
+		"*o1_0",
+		"*o1_1",
+		"d [lv 0*\"04\"*\"10200442\"]`\"KyaaaaaAAAAAAaaaaaAAaa!!!\"`[\\]",
+		"*o2_0",
+		"*o2_1",
+		"d [lv 0*\"10\"*\"20100001\"]`\"Omake episode 2 content with sufficient length here.\" `[\\]",
+	}
+
+	quotes := p.ParseAll(lines)
+	if len(quotes) != 3 {
+		t.Fatalf("expected 3 quotes, got %d", len(quotes))
+	}
+
+	if quotes[0].Episode != 8 || quotes[0].ContentType != "" {
+		t.Errorf("quote 0: got ep=%d ct=%q, want ep=8 ct=\"\"", quotes[0].Episode, quotes[0].ContentType)
+	}
+	if quotes[1].Episode != 1 || quotes[1].ContentType != "omake" {
+		t.Errorf("quote 1: got ep=%d ct=%q, want ep=1 ct=\"omake\"", quotes[1].Episode, quotes[1].ContentType)
+	}
+	if quotes[2].Episode != 2 || quotes[2].ContentType != "omake" {
+		t.Errorf("quote 2: got ep=%d ct=%q, want ep=2 ct=\"omake\"", quotes[2].Episode, quotes[2].ContentType)
+	}
+}
+
+func TestParseAll_RedTruth(t *testing.T) {
+	p := NewParser()
+
+	t.Run("english red truth - Beatrice", func(t *testing.T) {
+		lines := []string{
+			"new_episode 2",
+			"d2 [lv 0*\"27\"*\"20700951\"]`\" `[#][*]`{p:1:Everything I speak in red is the truth}! `[@][lv 0*\"27\"*\"20700952\"]`There's absolutely no need to doubt it!\" `[\\]",
+		}
+		quotes := p.ParseAll(lines)
+		if len(quotes) == 0 {
+			t.Fatal("expected at least 1 quote")
+		}
+		q := quotes[0]
+		if q.Episode != 2 {
+			t.Errorf("episode: got %d, want 2", q.Episode)
+		}
+		if q.CharacterID != "27" || q.Character != "Beatrice" {
+			t.Errorf("character: got %q/%q, want 27/Beatrice", q.CharacterID, q.Character)
+		}
+		if !strings.Contains(q.Text, "Everything I speak in red is the truth") {
+			t.Errorf("plain text missing red truth content: %q", q.Text)
+		}
+		if !strings.Contains(q.TextHtml, `<span class="red-truth">Everything I speak in red is the truth</span>`) {
+			t.Errorf("HTML missing red truth span: %q", q.TextHtml)
+		}
+		// Plain text should NOT contain the span tag
+		if strings.Contains(q.Text, "red-truth") {
+			t.Errorf("plain text should not contain HTML: %q", q.Text)
+		}
+	})
+
+	t.Run("japanese red truth - Beatrice", func(t *testing.T) {
+		lines := []string{
+			"new_episode 2",
+			"d2 [lv 0*\"27\"*\"20700951\"]`\"\u300c`[#][*]`{p:1:\u59be\u304c\u8d64\u3067\u8a9e\u308b\u3053\u3068\u306f\u5168\u3066\u771f\u5b9f}\uff01`[@][lv 0*\"27\"*\"20700952\"]`\u3000\u7591\u3046\u5fc5\u8981\u304c\u4f55\u3082\u306a\u3044\uff01\u300d`[\\]",
+		}
+		quotes := p.ParseAll(lines)
+		if len(quotes) == 0 {
+			t.Fatal("expected at least 1 quote")
+		}
+		q := quotes[0]
+		if q.Episode != 2 {
+			t.Errorf("episode: got %d, want 2", q.Episode)
+		}
+		if q.CharacterID != "27" {
+			t.Errorf("characterID: got %q, want 27", q.CharacterID)
+		}
+		if !strings.Contains(q.Text, "妾が赤で語ることは全て真実") {
+			t.Errorf("JA plain text missing red truth content: %q", q.Text)
+		}
+		if !strings.Contains(q.TextHtml, `<span class="red-truth">`) {
+			t.Errorf("JA HTML missing red truth span: %q", q.TextHtml)
+		}
+	})
+}
+
+func TestParseAll_BlueTruth(t *testing.T) {
+	p := NewParser()
+
+	t.Run("english blue truth - Battler", func(t *testing.T) {
+		lines := []string{
+			"new_episode 4",
+			"d2 [lv 0*\"10\"*\"40100220\"]`\"This is my truth! `[@][lv 0*\"10\"*\"40100221\"]`{p:2:Ushiromiya Kinzo is already dead}. `[#][*][@][lv 0*\"10\"*\"40100222\"]`{p:2:Therefore, the true number of people on the island is 17}! `[#][*][@][lv 0*\"10\"*\"40100223\"]`{p:2:By adding an unknown person X to that, it becomes 18 people}. `[#][*][@][lv 0*\"10\"*\"40100224\"]`{p:2:By supposing that this person X exists, the crime is possible even if all 17 people have alibis}!!\" `[#][*][\\]",
+		}
+		quotes := p.ParseAll(lines)
+		if len(quotes) == 0 {
+			t.Fatal("expected at least 1 quote")
+		}
+		q := quotes[0]
+		if q.Episode != 4 {
+			t.Errorf("episode: got %d, want 4", q.Episode)
+		}
+		if q.CharacterID != "10" || q.Character != "Battler" {
+			t.Errorf("character: got %q/%q, want 10/Battler", q.CharacterID, q.Character)
+		}
+		if !strings.Contains(q.Text, "Ushiromiya Kinzo is already dead") {
+			t.Errorf("plain text missing blue truth content: %q", q.Text)
+		}
+		if !strings.Contains(q.TextHtml, `<span class="blue-truth">Ushiromiya Kinzo is already dead</span>`) {
+			t.Errorf("HTML missing blue truth span: %q", q.TextHtml)
+		}
+		if !strings.Contains(q.TextHtml, `<span class="blue-truth">Therefore, the true number of people on the island is 17</span>`) {
+			t.Errorf("HTML missing second blue truth span: %q", q.TextHtml)
+		}
+		// Verify audio IDs for all 5 segments
+		if q.AudioID != "40100220, 40100221, 40100222, 40100223, 40100224" {
+			t.Errorf("audioID: got %q, want all 5 IDs", q.AudioID)
+		}
+	})
+
+	t.Run("japanese blue truth - Battler", func(t *testing.T) {
+		lines := []string{
+			"new_episode 4",
+			"d2 [lv 0*\"10\"*\"40100220\"]`\"\u3053\u308c\u304c\u4fc5\u306e\u771f\u5b9f\u3060\uff01`[@][lv 0*\"10\"*\"40100221\"]`\u3000{p:2:\u53f3\u4ee3\u5bae\u91d1\u8535\u306f\u3059\u3067\u306b\u6b7b\u4ea1\u3057\u3066\u3044\u308b}\u3002`[#][*][@][lv 0*\"10\"*\"40100222\"]`{p:2:\u3088\u3063\u3066\u5cf6\u306e\u672c\u5f53\u306e\u4eba\u6570\u306f\uff11\uff17\u4eba}\uff01`[#][*][@][lv 0*\"10\"*\"40100223\"]`\u3000{p:2:\u305d\u3053\u306b\u672a\u77e5\u306e\u4eba\u7269\uff38\u304c\u52a0\u308f\u308b\u3053\u3068\u3067\uff11\uff18\u4eba\u3068\u306a\u3063\u3066\u3044\u308b}\u3002`[#][*][@][lv 0*\"10\"*\"40100224\"]`{p:2:\u3053\u306e\u4eba\u7269\uff38\u306e\u5b58\u5728\u306e\u4eee\u5b9a\u306b\u3088\u3063\u3066\u3001\uff11\uff17\u4eba\u5168\u54e1\u306b\u30a2\u30ea\u30d0\u30a4\u304c\u3042\u3063\u3066\u3082\u72af\u884c\u306f\u53ef\u80fd\u306b\u306a\u308b}\u30c3\uff01\uff01\u300d`[#][*][\\]",
+		}
+		quotes := p.ParseAll(lines)
+		if len(quotes) == 0 {
+			t.Fatal("expected at least 1 quote")
+		}
+		q := quotes[0]
+		if q.Episode != 4 {
+			t.Errorf("episode: got %d, want 4", q.Episode)
+		}
+		if q.CharacterID != "10" {
+			t.Errorf("characterID: got %q, want 10", q.CharacterID)
+		}
+		if !strings.Contains(q.Text, "右代宮金蔵はすでに死亡している") {
+			t.Errorf("JA plain text missing blue truth content: %q", q.Text)
+		}
+		if !strings.Contains(q.TextHtml, `<span class="blue-truth">`) {
+			t.Errorf("JA HTML missing blue truth span: %q", q.TextHtml)
+		}
+	})
+}
+
+func TestParseAll_ColourFormatting(t *testing.T) {
+	p := NewParser()
+
+	lines := []string{
+		"new_episode 1",
+		"d [lv 0*\"19\"*\"11900003\"]`\"............Kinzo\u2010{c:86EF9C:san}. `[gstg 1][@][lv 0*\"19\"*\"11900004\"]`...your body only appears to be well thanks to the effects of the medicine.\" `[\\]",
+	}
+	quotes := p.ParseAll(lines)
+	if len(quotes) == 0 {
+		t.Fatal("expected at least 1 quote")
+	}
+	q := quotes[0]
+
+	// Plain text: {c:} tag stripped, content preserved
+	if !strings.Contains(q.Text, "san") {
+		t.Errorf("plain text missing colour content: %q", q.Text)
+	}
+	if strings.Contains(q.Text, "{c:") {
+		t.Errorf("plain text should not contain raw {c:} tag: %q", q.Text)
+	}
+
+	// HTML: colour span generated
+	if !strings.Contains(q.TextHtml, `<span style="color:#86EF9C">san</span>`) {
+		t.Errorf("HTML missing colour span: %q", q.TextHtml)
+	}
+}
+
+func TestParseAll_RubyAnnotations(t *testing.T) {
+	p := NewParser()
+
+	lines := []string{
+		"new_episode 1",
+		"d `You can't really tell Grandfather's story without covering that pivotal event back before the {ruby:1926-1989:Showa} era. `[\\]",
+	}
+	quotes := p.ParseAll(lines)
+	if len(quotes) == 0 {
+		t.Fatal("expected at least 1 quote")
+	}
+	q := quotes[0]
+
+	// Plain text: ruby rendered as "text (annotation)"
+	if !strings.Contains(q.Text, "Showa (1926-1989)") {
+		t.Errorf("plain text missing ruby content: %q", q.Text)
+	}
+
+	// HTML: proper ruby markup
+	if !strings.Contains(q.TextHtml, "<ruby>Showa<rp>(</rp><rt>1926-1989</rt><rp>)</rp></ruby>") {
+		t.Errorf("HTML missing ruby markup: %q", q.TextHtml)
+	}
+}
+
+func TestParseAll_FontNameFormatting(t *testing.T) {
+	p := NewParser()
+
+	// Ura 1 line with {f:5:Bernkastel}
+	lines := []string{
+		"new_ura 1",
+		"d2 [lv 0*\"27\"*\"90700093\"]`\"...*cackle*cackle* Hostility? I bear nothing of the sort. `[@][#][*][lv 0*\"27\"*\"90700094\"]`...I am just terribly concerned with seeing to it that the legendary witch, Lady {f:5:Bernkastel}, is well attended to.\" `[\\]",
+	}
+	quotes := p.ParseAll(lines)
+	if len(quotes) == 0 {
+		t.Fatal("expected at least 1 quote")
+	}
+	q := quotes[0]
+
+	if !strings.Contains(q.Text, "Bernkastel") {
+		t.Errorf("plain text missing font-name content: %q", q.Text)
+	}
+	if strings.Contains(q.Text, "{f:") {
+		t.Errorf("plain text should not contain raw {f:} tag: %q", q.Text)
+	}
+	if !strings.Contains(q.TextHtml, `<span class="quote-name">Bernkastel</span>`) {
+		t.Errorf("HTML missing quote-name span: %q", q.TextHtml)
+	}
+}
+
+func TestParseAll_ItalicFormatting(t *testing.T) {
+	p := NewParser()
+
+	lines := []string{
+		"new_episode 1",
+		"d `...Wait a sec, we {i:are} totally sure it's not gonna shake, ...right...? `[\\]",
+	}
+	quotes := p.ParseAll(lines)
+	if len(quotes) == 0 {
+		t.Fatal("expected at least 1 quote")
+	}
+	q := quotes[0]
+
+	if !strings.Contains(q.Text, "are") {
+		t.Errorf("plain text missing italic content: %q", q.Text)
+	}
+	if strings.Contains(q.Text, "{i:") {
+		t.Errorf("plain text should not contain raw {i:} tag: %q", q.Text)
+	}
+	if !strings.Contains(q.TextHtml, "<em>are</em>") {
+		t.Errorf("HTML missing em tag: %q", q.TextHtml)
+	}
+}
+
+func TestParseAll_LineBreaks(t *testing.T) {
+	p := NewParser()
+
+	t.Run("english narrator with line break tag", func(t *testing.T) {
+		lines := []string{
+			"new_episode 1",
+			"d `In the corner of this room, which was larger than most, `[@]`{n}was an expensive-looking bed and a physician conducting an examination. `[\\]",
+		}
+		quotes := p.ParseAll(lines)
+		if len(quotes) == 0 {
+			t.Fatal("expected at least 1 quote")
+		}
+		q := quotes[0]
+
+		// Plain text: {n} replaced with space
+		if strings.Contains(q.Text, "{n}") {
+			t.Errorf("plain text should not contain raw {n} tag: %q", q.Text)
+		}
+		// HTML: {n} replaced with <br>
+		if !strings.Contains(q.TextHtml, "<br>") {
+			t.Errorf("HTML missing <br> for line break: %q", q.TextHtml)
+		}
+	})
+
+	t.Run("japanese narrator with line break", func(t *testing.T) {
+		lines := []string{
+			"new_episode 8",
+			"d `\u793c\u62dd\u5802\u306e\u4e2d\u306b\u306f\u3001\u2026\u2026\u4e8c\u4eba\u306e\u4eba\u5f71\u3002`[@]`{n}\u305d\u308c\u306f\u3001\u5144\u3068\u3001\u59b9\u306e\u59ff\u3002`[\\]",
+		}
+		quotes := p.ParseAll(lines)
+		if len(quotes) == 0 {
+			t.Fatal("expected at least 1 quote")
+		}
+		q := quotes[0]
+
+		if !strings.Contains(q.Text, "礼拝堂") {
+			t.Errorf("JA text missing expected content: %q", q.Text)
+		}
+		if strings.Contains(q.Text, "{n}") {
+			t.Errorf("JA plain text should not contain raw {n} tag: %q", q.Text)
+		}
+		if !strings.Contains(q.TextHtml, "<br>") {
+			t.Errorf("JA HTML missing <br> for line break: %q", q.TextHtml)
+		}
+	})
+}
+
+func TestParseAll_NarratorLines(t *testing.T) {
+	p := NewParser()
+
+	t.Run("english narrator basic", func(t *testing.T) {
+		lines := []string{
+			"new_episode 1",
+			"d `The old physician let out a sigh as he removed the stethoscope. `[\\]",
+		}
+		quotes := p.ParseAll(lines)
+		if len(quotes) == 0 {
+			t.Fatal("expected at least 1 quote")
+		}
+		q := quotes[0]
+
+		if q.Episode != 1 {
+			t.Errorf("episode: got %d, want 1", q.Episode)
+		}
+		if q.CharacterID != "narrator" {
+			t.Errorf("characterID: got %q, want narrator", q.CharacterID)
+		}
+		if q.Character != "Narrator" {
+			t.Errorf("character: got %q, want Narrator", q.Character)
+		}
+		if q.AudioID != "" {
+			t.Errorf("audioID: got %q, want empty", q.AudioID)
+		}
+		if !strings.Contains(q.Text, "physician") {
+			t.Errorf("text missing expected content: %q", q.Text)
+		}
+	})
+
+	t.Run("japanese narrator basic", func(t *testing.T) {
+		lines := []string{
+			"new_episode 1",
+			"d `\u8074\u8a3a\u5668\u3092\u5916\u3057\u306a\u304c\u3089\u3001\u5e74\u8f29\u306e\u533b\u5e2b\u306f\u6e9c\u3081\u606f\u3092\u6f0f\u3089\u3059\u3002`[\\]",
+		}
+		quotes := p.ParseAll(lines)
+		if len(quotes) == 0 {
+			t.Fatal("expected at least 1 quote")
+		}
+		q := quotes[0]
+
+		if q.Episode != 1 {
+			t.Errorf("episode: got %d, want 1", q.Episode)
+		}
+		if q.CharacterID != "narrator" {
+			t.Errorf("characterID: got %q, want narrator", q.CharacterID)
+		}
+		if q.Character != "Narrator" {
+			t.Errorf("character: got %q, want Narrator", q.Character)
+		}
+		if !strings.Contains(q.Text, "聴診器") {
+			t.Errorf("JA text missing expected content: %q", q.Text)
+		}
+	})
+
+	t.Run("d2 narrator line", func(t *testing.T) {
+		lines := []string{
+			"new_episode 1",
+			"d2 `After eyeing both the master who demanded the alcohol and the family doctor who forbade it, `[@][#][*]`Genji, the old butler, silently gave a slight nod and carried out his master's orders faithfully. `[\\]",
+		}
+		quotes := p.ParseAll(lines)
+		if len(quotes) == 0 {
+			t.Fatal("expected at least 1 quote")
+		}
+		q := quotes[0]
+
+		if q.CharacterID != "narrator" {
+			t.Errorf("characterID: got %q, want narrator", q.CharacterID)
+		}
+		if !strings.Contains(q.Text, "Genji") {
+			t.Errorf("text missing expected content: %q", q.Text)
+		}
+	})
+
+	t.Run("d2 japanese narrator line", func(t *testing.T) {
+		lines := []string{
+			"new_episode 1",
+			"d2 `\u6e90\u6b21\u3068\u547c\u3070\u308c\u305f\u8001\u9f62\u306e\u57f7\u4e8b\u306f\u3001\u9152\u3092\u6c42\u3081\u308b\u4e3b\u3068\u3001\u305d\u308c\u3092\u6b62\u3081\u308b\u4e3b\u6cbb\u533b\u306e\u53cc\u65b9\u3092\u898b\u6bd4\u3079\u305f\u5f8c\u3001`[@][#][*]`\u7121\u8a00\u3067\u5c0f\u3055\u304f\u9837\u304d\u3001\u5df1\u306e\u4e3b\u306e\u547d\u4ee4\u306b\u5fe0\u5b9f\u306b\u5f93\u3046\u306e\u3060\u3063\u305f\u3002`[\\]",
+		}
+		quotes := p.ParseAll(lines)
+		if len(quotes) == 0 {
+			t.Fatal("expected at least 1 quote")
+		}
+		q := quotes[0]
+
+		if q.CharacterID != "narrator" {
+			t.Errorf("characterID: got %q, want narrator", q.CharacterID)
+		}
+		if !strings.Contains(q.Text, "源次") {
+			t.Errorf("JA text missing expected content: %q", q.Text)
+		}
+	})
+
+	t.Run("english episode 8 narrator with multi-segment", func(t *testing.T) {
+		lines := []string{
+			"new_episode 8",
+			"d `Two silhouettes could be seen in the chapel. `[@]`A big brother...and a little sister. `[\\]",
+		}
+		quotes := p.ParseAll(lines)
+		if len(quotes) == 0 {
+			t.Fatal("expected at least 1 quote")
+		}
+		q := quotes[0]
+
+		if q.Episode != 8 {
+			t.Errorf("episode: got %d, want 8", q.Episode)
+		}
+		if !strings.Contains(q.Text, "chapel") {
+			t.Errorf("text missing expected content: %q", q.Text)
+		}
+		if !strings.Contains(q.Text, "big brother") {
+			t.Errorf("text missing expected content: %q", q.Text)
+		}
+	})
+}
+
+func TestParseAll_ShortLineFiltering(t *testing.T) {
+	p := NewParser()
+
+	lines := []string{
+		"new_episode 1",
+		// This should be filtered (text <= 10 chars after processing)
+		"d [lv 0*\"10\"*\"10100001\"]`\"Hello.\" `[\\]",
+		// This should be kept (text > 10 chars)
+		"d [lv 0*\"10\"*\"10100002\"]`\"This is a much longer line of dialogue that passes.\" `[\\]",
+	}
+
+	quotes := p.ParseAll(lines)
+	if len(quotes) != 1 {
+		t.Fatalf("expected 1 quote (short line filtered), got %d", len(quotes))
+	}
+	if !strings.Contains(quotes[0].Text, "longer line") {
+		t.Errorf("wrong quote kept: %q", quotes[0].Text)
+	}
+}
+
+func TestParseAll_MultipleAudioIDs(t *testing.T) {
+	p := NewParser()
+
+	lines := []string{
+		"new_episode 5",
+		"d2 [lv 0*\"27\"*\"50700001\"]`\"You idiot!! `[@][lv 0*\"27\"*\"50700002\"]`Isn't it obvious?!! `[@][#][*][lv 0*\"27\"*\"50700003\"]`It'll be fun to kill her and see your face twist in pain, why else?!! `[@][lv 0*\"27\"*\"50700004\"]`Gahyahahahahahahaha!!\" `[\\]",
+	}
+
+	quotes := p.ParseAll(lines)
+	if len(quotes) == 0 {
+		t.Fatal("expected at least 1 quote")
+	}
+	q := quotes[0]
+
+	if q.AudioID != "50700001, 50700002, 50700003, 50700004" {
+		t.Errorf("audioID: got %q, want \"50700001, 50700002, 50700003, 50700004\"", q.AudioID)
+	}
+}
+
+func TestParseAll_DuplicateAudioIDsDeduped(t *testing.T) {
+	p := NewParser()
+
+	// Simulate a line with duplicate audio IDs
+	lines := []string{
+		"new_episode 1",
+		"d [lv 0*\"10\"*\"10100001\"][lv 0*\"10\"*\"10100001\"]`\"This line has duplicate audio IDs that should be deduped.\" `[\\]",
+	}
+
+	quotes := p.ParseAll(lines)
+	if len(quotes) == 0 {
+		t.Fatal("expected at least 1 quote")
+	}
+	if quotes[0].AudioID != "10100001" {
+		t.Errorf("audioID should be deduped: got %q, want \"10100001\"", quotes[0].AudioID)
+	}
+}
+
+func TestParseAll_CharacterNameResolution(t *testing.T) {
+	p := NewParser()
+
+	tests := []struct {
+		charID   string
+		wantName string
+	}{
+		{"01", "Kinzo"},
+		{"10", "Battler"},
+		{"11", "Ange"},
+		{"13", "Maria"},
+		{"15", "Shannon"},
+		{"16", "Kanon"},
+		{"27", "Beatrice"},
+		{"28", "Bernkastel"},
+		{"29", "Lambdadelta"},
+		{"46", "Erika"},
+		{"47", "Dlanor"},
+		{"54", "Willard"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.wantName, func(t *testing.T) {
+			lines := []string{
+				"new_episode 1",
+				"d [lv 0*\"" + tt.charID + "\"*\"11900001\"]`\"This line has enough characters for the length filter to pass it.\" `[\\]",
+			}
+			quotes := p.ParseAll(lines)
+			if len(quotes) == 0 {
+				t.Fatal("expected at least 1 quote")
+			}
+			if quotes[0].Character != tt.wantName {
+				t.Errorf("character: got %q, want %q", quotes[0].Character, tt.wantName)
+			}
+			if quotes[0].CharacterID != tt.charID {
+				t.Errorf("characterID: got %q, want %q", quotes[0].CharacterID, tt.charID)
+			}
+		})
+	}
+}
+
+func TestParseAll_SpecialCharTags(t *testing.T) {
+	p := NewParser()
+
+	t.Run("qt tag produces double quote", func(t *testing.T) {
+		lines := []string{
+			"new_episode 1",
+			"d `She said {qt}hello there{qt} in a cheerful and bright tone of voice. `[\\]",
+		}
+		quotes := p.ParseAll(lines)
+		if len(quotes) == 0 {
+			t.Fatal("expected at least 1 quote")
+		}
+		if !strings.Contains(quotes[0].Text, `"hello there"`) {
+			t.Errorf("text should have quotes from {qt}: %q", quotes[0].Text)
+		}
+	})
+
+	t.Run("ob and eb tags produce braces", func(t *testing.T) {
+		lines := []string{
+			"new_episode 1",
+			"d `The text contains {ob}curly braces{eb} that need preserving somehow. `[\\]",
+		}
+		quotes := p.ParseAll(lines)
+		if len(quotes) == 0 {
+			t.Fatal("expected at least 1 quote")
+		}
+		if !strings.Contains(quotes[0].Text, "{curly braces}") {
+			t.Errorf("text should have braces from {ob}/{eb}: %q", quotes[0].Text)
+		}
+	})
+
+	t.Run("os and es tags produce square brackets", func(t *testing.T) {
+		lines := []string{
+			"new_episode 1",
+			"d `The text contains {os}square brackets{es} inside here I think. `[\\]",
+		}
+		quotes := p.ParseAll(lines)
+		if len(quotes) == 0 {
+			t.Fatal("expected at least 1 quote")
+		}
+		if !strings.Contains(quotes[0].Text, "[square brackets]") {
+			t.Errorf("text should have square brackets from {os}/{es}: %q", quotes[0].Text)
+		}
+	})
+}
+
+func TestParseAll_EpisodeFromAudioID(t *testing.T) {
+	p := NewParser()
+
+	// Without a new_episode marker, the episode should be derived from the audio ID
+	lines := []string{
+		"d [lv 0*\"10\"*\"30100001\"]`\"This is a line with enough text for the parser filter.\" `[\\]",
+	}
+	quotes := p.ParseAll(lines)
+	if len(quotes) == 0 {
+		t.Fatal("expected at least 1 quote")
+	}
+	// Audio ID "30100001" starts with '3', so episode = 3
+	// But currentEpisode is 0, so the audio-derived episode (3) is used since
+	// ParseAll only overrides when currentEpisode > 0
+	if quotes[0].Episode != 3 {
+		t.Errorf("episode from audioID: got %d, want 3", quotes[0].Episode)
+	}
+}
+
+func TestParseAll_EpisodeMarkerOverridesAudioID(t *testing.T) {
+	p := NewParser()
+
+	lines := []string{
+		"new_episode 7",
+		"d [lv 0*\"10\"*\"30100001\"]`\"This is a line with enough text for the parser filter.\" `[\\]",
+	}
+	quotes := p.ParseAll(lines)
+	if len(quotes) == 0 {
+		t.Fatal("expected at least 1 quote")
+	}
+	// new_episode 7 overrides the audio-derived episode (3)
+	if quotes[0].Episode != 7 {
+		t.Errorf("episode should be from marker: got %d, want 7", quotes[0].Episode)
+	}
+}
+
+func TestParseAll_NonDialogueNonNarratorLinesSkipped(t *testing.T) {
+	p := NewParser()
+
+	lines := []string{
+		"new_episode 1",
+		"flush 10,167",
+		"textoff",
+		"waits 167",
+		"lbg s0_3,\"black\"",
+		"bgmplay 13,71,0",
+		"msgwnd_nan",
+		"*d1",
+		"d [lv 0*\"19\"*\"11900001\"]`\"This is the only actual dialogue line with enough text.\" `[\\]",
+		"lss s0_8,\"nan\",\"a1_fumu1\" ;1",
+	}
+	quotes := p.ParseAll(lines)
+	if len(quotes) != 1 {
+		t.Fatalf("expected 1 quote from mixed lines, got %d", len(quotes))
+	}
+}
+
+func TestParseAll_EmptyInput(t *testing.T) {
+	p := NewParser()
+
+	quotes := p.ParseAll(nil)
+	if len(quotes) != 0 {
+		t.Errorf("expected 0 quotes for nil input, got %d", len(quotes))
+	}
+
+	quotes = p.ParseAll([]string{})
+	if len(quotes) != 0 {
+		t.Errorf("expected 0 quotes for empty input, got %d", len(quotes))
+	}
+}
+
+func TestParseAll_AllEpisodes(t *testing.T) {
+	p := NewParser()
+
+	// Verify all 8 episodes can be parsed
+	var lines []string
+	for ep := 1; ep <= 8; ep++ {
+		lines = append(lines,
+			"new_episode "+string(rune('0'+ep)),
+			"d [lv 0*\"10\"*\""+string(rune('0'+ep))+"0100001\"]`\"Episode dialogue line that is long enough to pass the filter.\" `[\\]",
+		)
+	}
+
+	quotes := p.ParseAll(lines)
+	if len(quotes) != 8 {
+		t.Fatalf("expected 8 quotes, got %d", len(quotes))
+	}
+	for i, q := range quotes {
+		wantEp := i + 1
+		if q.Episode != wantEp {
+			t.Errorf("quote %d: episode got %d, want %d", i, q.Episode, wantEp)
+		}
+		if q.ContentType != "" {
+			t.Errorf("quote %d: contentType got %q, want empty", i, q.ContentType)
+		}
+	}
+}
+
+func TestParseAll_AllContentTypesPerEpisode(t *testing.T) {
+	p := NewParser()
+
+	// For each episode 1-8, test all content types
+	for ep := 1; ep <= 8; ep++ {
+		epStr := string(rune('0' + ep))
+		t.Run("episode_"+epStr, func(t *testing.T) {
+			lines := []string{
+				"new_episode " + epStr,
+				"d [lv 0*\"10\"*\"" + epStr + "0100001\"]`\"Regular content for this episode that passes length filter.\" `[\\]",
+				"new_tea " + epStr,
+				"d [lv 0*\"10\"*\"9010000" + epStr + "\"]`\"Tea party content for this episode that passes length filter.\" `[\\]",
+				"new_ura " + epStr,
+				"d [lv 0*\"10\"*\"9210000" + epStr + "\"]`\"Ura content for this episode that passes the length filter.\" `[\\]",
+			}
+			quotes := p.ParseAll(lines)
+			if len(quotes) != 3 {
+				t.Fatalf("expected 3 quotes, got %d", len(quotes))
+			}
+			if quotes[0].Episode != ep || quotes[0].ContentType != "" {
+				t.Errorf("regular: ep=%d ct=%q", quotes[0].Episode, quotes[0].ContentType)
+			}
+			if quotes[1].Episode != ep || quotes[1].ContentType != "tea" {
+				t.Errorf("tea: ep=%d ct=%q", quotes[1].Episode, quotes[1].ContentType)
+			}
+			if quotes[2].Episode != ep || quotes[2].ContentType != "ura" {
+				t.Errorf("ura: ep=%d ct=%q", quotes[2].Episode, quotes[2].ContentType)
+			}
+		})
+	}
+}
+
+func TestParseAll_UnclosedTagCleanup(t *testing.T) {
+	p := NewParser()
+
+	// Unclosed {p:1: tag (no closing }) — from real data in episode 7
+	lines := []string{
+		"new_episode 7",
+		"d2 [lv 0*\"46\"*\"54501382\"]`\"`[#][*]`{p:1:During that one hour, you were in the dining hall of the mansion}!! `[@][lv 0*\"46\"*\"54501383\"]`{p:1:This text has an unclosed tag that should be cleaned up`[\\]",
+	}
+	quotes := p.ParseAll(lines)
+	if len(quotes) == 0 {
+		t.Fatal("expected at least 1 quote")
+	}
+	q := quotes[0]
+
+	// The closed {p:1:} should be rendered as red truth
+	if !strings.Contains(q.TextHtml, `<span class="red-truth">During that one hour, you were in the dining hall of the mansion</span>`) {
+		t.Errorf("HTML missing red truth for closed tag: %q", q.TextHtml)
+	}
+	// Unclosed tag should be cleaned up (removed)
+	if strings.Contains(q.TextHtml, "{p:1:") {
+		t.Errorf("HTML should not contain unclosed tag: %q", q.TextHtml)
+	}
+}
+
+func TestParseAll_MixedRedBlueTruth(t *testing.T) {
+	p := NewParser()
+
+	// Real line from episode 5 tea party: Erika uses both red and blue truth
+	lines := []string{
+		"new_tea 5",
+		"d2 [lv 0*\"46\"*\"54501382\"]`\"`[#][*]`{p:2:It's only possible for the crimes to have taken place during the single hour after midnight}!! `[@][lv 0*\"46\"*\"54501383\"]`{p:1:During that one hour, you were in the dining hall of the mansion}!! `[@][lv 0*\"46\"*\"54501384\"]`{p:2:Therefore, it was impossible for you to commit the crimes}!\" `[\\]",
+	}
+	quotes := p.ParseAll(lines)
+	if len(quotes) == 0 {
+		t.Fatal("expected at least 1 quote")
+	}
+	q := quotes[0]
+
+	if q.Episode != 5 || q.ContentType != "tea" {
+		t.Errorf("got ep=%d ct=%q, want ep=5 ct=tea", q.Episode, q.ContentType)
+	}
+	if q.CharacterID != "46" || q.Character != "Erika" {
+		t.Errorf("character: got %q/%q, want 46/Erika", q.CharacterID, q.Character)
+	}
+
+	// Both red and blue truth should be present in HTML
+	if !strings.Contains(q.TextHtml, `class="red-truth"`) {
+		t.Errorf("HTML missing red truth: %q", q.TextHtml)
+	}
+	if !strings.Contains(q.TextHtml, `class="blue-truth"`) {
+		t.Errorf("HTML missing blue truth: %q", q.TextHtml)
+	}
+
+	// Plain text should contain the content without HTML tags
+	if !strings.Contains(q.Text, "During that one hour") {
+		t.Errorf("plain text missing red truth content: %q", q.Text)
+	}
+	if !strings.Contains(q.Text, "impossible for you to commit") {
+		t.Errorf("plain text missing blue truth content: %q", q.Text)
+	}
+}
+
+func TestParseAll_OmakeNarratorLine(t *testing.T) {
+	p := NewParser()
+
+	lines := []string{
+		"*o1_0",
+		"*o1_2",
+		"d `Jessica's piercing shriek rang out across the entire building.`[\\]",
+	}
+	quotes := p.ParseAll(lines)
+	if len(quotes) == 0 {
+		t.Fatal("expected at least 1 quote")
+	}
+	q := quotes[0]
+
+	if q.Episode != 1 {
+		t.Errorf("episode: got %d, want 1", q.Episode)
+	}
+	if q.ContentType != "omake" {
+		t.Errorf("contentType: got %q, want omake", q.ContentType)
+	}
+	if q.CharacterID != "narrator" {
+		t.Errorf("characterID: got %q, want narrator", q.CharacterID)
+	}
+	if !strings.Contains(q.Text, "Jessica") {
+		t.Errorf("text missing expected content: %q", q.Text)
+	}
+}

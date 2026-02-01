@@ -177,8 +177,6 @@ func (p *parser) extractText(line string) (string, string) {
 		}
 	}
 
-	// Strip leftover unclosed formatting tags (missing closing }).
-	// Removes the tag prefix (e.g. "{p:0:", "{i:", "{a:c:") but keeps the content.
 	textHtml = p.unclosedTagRegex.ReplaceAllString(textHtml, "")
 	plainText = p.unclosedTagRegex.ReplaceAllString(plainText, "")
 

@@ -712,12 +712,12 @@
             return;
         }
 
-        const episodeLabel = browseEpisode > 0 ? ` — Episode ${browseEpisode}` : '';
+        const browseEpLabel = browseEpisode > 0 ? ` — Episode ${browseEpisode}` : '';
         const truthLabel = truthSelect.value === 'red' ? ' — Red Truth' : (truthSelect.value === 'blue' ? ' — Blue Truth' : '');
         const titleName = data.character || 'All Characters';
         const header = `
             <div class="browse-header">
-                <h2 class="browse-title">${escapeHtml(titleName)}${episodeLabel}${truthLabel}</h2>
+                <h2 class="browse-title">${escapeHtml(titleName)}${browseEpLabel}${truthLabel}</h2>
                 <p class="browse-subtitle">Showing lines ${data.offset + 1}-${data.offset + data.quotes.length} of ${data.total} in story order</p>
             </div>
         `;
