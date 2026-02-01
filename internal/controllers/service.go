@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"umineko_quote/internal/audio"
 	"umineko_quote/internal/og"
 	"umineko_quote/internal/quote"
 )
@@ -8,13 +9,15 @@ import (
 type Service struct {
 	QuoteService     quote.Service
 	OGImageGenerator *og.ImageGenerator
+	AudioCombiner    audio.Combiner
 	HTMLContent      string
 }
 
-func NewService(quoteService quote.Service, ogGen *og.ImageGenerator, htmlContent string) Service {
+func NewService(quoteService quote.Service, ogGen *og.ImageGenerator, audioCombiner audio.Combiner, htmlContent string) Service {
 	return Service{
 		QuoteService:     quoteService,
 		OGImageGenerator: ogGen,
+		AudioCombiner:    audioCombiner,
 		HTMLContent:      htmlContent,
 	}
 }

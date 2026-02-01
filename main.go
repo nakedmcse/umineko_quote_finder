@@ -2,7 +2,9 @@ package main
 
 import (
 	"embed"
+	"log"
 	"net/http"
+	"umineko_quote/internal/audio"
 	"umineko_quote/internal/controllers"
 	"umineko_quote/internal/og"
 	"umineko_quote/internal/quote"
@@ -27,8 +29,12 @@ func main() {
 
 	quoteService := quote.NewService()
 	ogGen := og.NewImageGenerator()
+	audioCombiner, err := audio.NewCombiner()
+	if err != nil {
+		log.Fatalf("failed to initialize audio combiner: %v", err)
+	}
 	htmlBytes, _ := staticFiles.ReadFile("static/index.html")
-	service := controllers.NewService(quoteService, ogGen, string(htmlBytes))
+	service := controllers.NewService(quoteService, ogGen, audioCombiner, string(htmlBytes))
 	routes.PublicRoutes(service, app)
 
 	app.Use("/", filesystem.New(filesystem.Config{

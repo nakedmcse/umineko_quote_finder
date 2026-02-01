@@ -21,14 +21,6 @@ func init() {
 	}
 }
 
-func oggCRC(data []byte) uint32 {
-	var crc uint32
-	for _, b := range data {
-		crc = (crc << 8) ^ oggCRCTable[(crc>>24)^uint32(b)]
-	}
-	return crc
-}
-
 type oggPage struct {
 	headerType     byte
 	granulePos     int64
@@ -107,8 +99,16 @@ func (p *oggPage) serialize() []byte {
 	copy(buf[27:headerSize], p.segmentTable)
 	copy(buf[headerSize:], p.data)
 
-	crc := oggCRC(buf)
+	crc := p.oggCRC(buf)
 	binary.LittleEndian.PutUint32(buf[22:26], crc)
 
 	return buf
+}
+
+func (*oggPage) oggCRC(data []byte) uint32 {
+	var crc uint32
+	for _, b := range data {
+		crc = (crc << 8) ^ oggCRCTable[(crc>>24)^uint32(b)]
+	}
+	return crc
 }

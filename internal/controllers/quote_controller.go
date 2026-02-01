@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"strings"
 
-	"umineko_quote/internal/audio"
 	"umineko_quote/internal/quote"
 	"umineko_quote/internal/utils"
 
@@ -207,7 +206,7 @@ func (s *Service) combinedAudio(ctx *fiber.Ctx) error {
 		}
 	}
 
-	data, err := audio.CombineOgg(charId, ids, s.QuoteService.AudioFilePath)
+	data, err := s.AudioCombiner.CombineOgg(charId, ids, s.QuoteService.AudioFilePath)
 	if err != nil {
 		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": err.Error(),
