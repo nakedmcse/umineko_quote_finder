@@ -5,12 +5,10 @@ import (
 	"testing"
 )
 
-func getTestService() Service {
-	return NewService()
-}
+var testService = NewService()
 
 func TestService_Search_ExactMatch(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	resp := svc.Search("Beatrice", "en", 10, 0, "", 0, false, TruthAll)
 
@@ -26,7 +24,7 @@ func TestService_Search_ExactMatch(t *testing.T) {
 }
 
 func TestService_Search_DefaultValues(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	resp := svc.Search("witch", "", 0, -1, "", 0, false, TruthAll)
 
@@ -39,7 +37,7 @@ func TestService_Search_DefaultValues(t *testing.T) {
 }
 
 func TestService_Search_WithCharacterFilter(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	resp := svc.Search("witch", "en", 10, 0, "10", 0, false, TruthAll)
 
@@ -51,7 +49,7 @@ func TestService_Search_WithCharacterFilter(t *testing.T) {
 }
 
 func TestService_Search_WithEpisodeFilter(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	resp := svc.Search("witch", "en", 10, 0, "", 1, false, TruthAll)
 
@@ -63,7 +61,7 @@ func TestService_Search_WithEpisodeFilter(t *testing.T) {
 }
 
 func TestService_Search_RedTruthFilter(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	resp := svc.Search("truth", "en", 10, 0, "", 0, false, TruthRed)
 
@@ -75,7 +73,7 @@ func TestService_Search_RedTruthFilter(t *testing.T) {
 }
 
 func TestService_Search_NoResults(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	resp := svc.Search("xyzzyxyzzyxyzzy", "en", 10, 0, "", 0, false, TruthAll)
 
@@ -88,7 +86,7 @@ func TestService_Search_NoResults(t *testing.T) {
 }
 
 func TestService_Search_ForceFuzzy(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	resp := svc.Search("Beatrice", "en", 10, 0, "", 0, true, TruthAll)
 
@@ -98,7 +96,7 @@ func TestService_Search_ForceFuzzy(t *testing.T) {
 }
 
 func TestService_Search_Japanese(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	resp := svc.Search("ベアトリーチェ", "ja", 10, 0, "", 0, false, TruthAll)
 
@@ -108,7 +106,7 @@ func TestService_Search_Japanese(t *testing.T) {
 }
 
 func TestService_Search_UnknownLang(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	resp := svc.Search("test", "fr", 10, 0, "", 0, false, TruthAll)
 
@@ -118,7 +116,7 @@ func TestService_Search_UnknownLang(t *testing.T) {
 }
 
 func TestService_Browse(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	resp := svc.Browse("en", "10", 10, 0, 0, TruthAll)
 
@@ -137,7 +135,7 @@ func TestService_Browse(t *testing.T) {
 }
 
 func TestService_Browse_WithEpisode(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	resp := svc.Browse("en", "10", 10, 0, 1, TruthAll)
 
@@ -149,7 +147,7 @@ func TestService_Browse_WithEpisode(t *testing.T) {
 }
 
 func TestService_Browse_DefaultValues(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	resp := svc.Browse("", "", 0, -1, 0, TruthAll)
 
@@ -162,7 +160,7 @@ func TestService_Browse_DefaultValues(t *testing.T) {
 }
 
 func TestService_Browse_UnknownLang(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	resp := svc.Browse("fr", "10", 10, 0, 0, TruthAll)
 
@@ -172,7 +170,7 @@ func TestService_Browse_UnknownLang(t *testing.T) {
 }
 
 func TestService_GetByCharacter(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	resp := svc.GetByCharacter("en", "27", 10, 0, 0, TruthAll)
 
@@ -190,7 +188,7 @@ func TestService_GetByCharacter(t *testing.T) {
 }
 
 func TestService_GetByCharacter_WithEpisode(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	resp := svc.GetByCharacter("en", "10", 10, 0, 1, TruthAll)
 
@@ -205,7 +203,7 @@ func TestService_GetByCharacter_WithEpisode(t *testing.T) {
 }
 
 func TestService_GetByCharacter_UnknownCharacter(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	resp := svc.GetByCharacter("en", "999", 10, 0, 0, TruthAll)
 
@@ -215,7 +213,7 @@ func TestService_GetByCharacter_UnknownCharacter(t *testing.T) {
 }
 
 func TestService_GetByCharacter_DefaultValues(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	resp := svc.GetByCharacter("", "10", 0, -1, 0, TruthAll)
 
@@ -225,7 +223,7 @@ func TestService_GetByCharacter_DefaultValues(t *testing.T) {
 }
 
 func TestService_GetByAudioID(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	q := svc.GetByAudioID("en", "11900001")
 
@@ -238,7 +236,7 @@ func TestService_GetByAudioID(t *testing.T) {
 }
 
 func TestService_GetByAudioID_NotFound(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	q := svc.GetByAudioID("en", "99999999")
 
@@ -248,7 +246,7 @@ func TestService_GetByAudioID_NotFound(t *testing.T) {
 }
 
 func TestService_GetByAudioID_DefaultLang(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	q := svc.GetByAudioID("", "11900001")
 
@@ -258,7 +256,7 @@ func TestService_GetByAudioID_DefaultLang(t *testing.T) {
 }
 
 func TestService_GetByAudioID_UnknownLang(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	q := svc.GetByAudioID("fr", "11900001")
 
@@ -268,7 +266,7 @@ func TestService_GetByAudioID_UnknownLang(t *testing.T) {
 }
 
 func TestService_Random(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	q := svc.Random("en", "", 0, TruthAll)
 
@@ -281,7 +279,7 @@ func TestService_Random(t *testing.T) {
 }
 
 func TestService_Random_WithCharacter(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	for i := 0; i < 10; i++ {
 		q := svc.Random("en", "27", 0, TruthAll)
@@ -295,7 +293,7 @@ func TestService_Random_WithCharacter(t *testing.T) {
 }
 
 func TestService_Random_WithEpisode(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	for i := 0; i < 10; i++ {
 		q := svc.Random("en", "", 1, TruthAll)
@@ -309,7 +307,7 @@ func TestService_Random_WithEpisode(t *testing.T) {
 }
 
 func TestService_Random_WithCharacterAndEpisode(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	for i := 0; i < 10; i++ {
 		q := svc.Random("en", "10", 1, TruthAll)
@@ -326,7 +324,7 @@ func TestService_Random_WithCharacterAndEpisode(t *testing.T) {
 }
 
 func TestService_Random_RedTruth(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	for i := 0; i < 10; i++ {
 		q := svc.Random("en", "", 0, TruthRed)
@@ -340,7 +338,7 @@ func TestService_Random_RedTruth(t *testing.T) {
 }
 
 func TestService_Random_DefaultLang(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	q := svc.Random("", "", 0, TruthAll)
 
@@ -350,7 +348,7 @@ func TestService_Random_DefaultLang(t *testing.T) {
 }
 
 func TestService_Random_UnknownLang(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	q := svc.Random("fr", "", 0, TruthAll)
 
@@ -360,7 +358,7 @@ func TestService_Random_UnknownLang(t *testing.T) {
 }
 
 func TestService_GetCharacters(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	chars := svc.GetCharacters()
 
@@ -376,7 +374,7 @@ func TestService_GetCharacters(t *testing.T) {
 }
 
 func TestService_GetStats(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	stats := svc.GetStats()
 
@@ -391,7 +389,7 @@ func TestService_GetStats(t *testing.T) {
 }
 
 func TestService_Browse_RedTruthFilter(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	resp := svc.Browse("en", "", 10, 0, 0, TruthRed)
 
@@ -403,7 +401,7 @@ func TestService_Browse_RedTruthFilter(t *testing.T) {
 }
 
 func TestService_GetByCharacter_BlueTruthFilter(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	resp := svc.GetByCharacter("en", "10", 100, 0, 0, TruthBlue)
 
@@ -415,7 +413,7 @@ func TestService_GetByCharacter_BlueTruthFilter(t *testing.T) {
 }
 
 func TestService_GetByAudioID_CompositeAudioID(t *testing.T) {
-	svc := getTestService()
+	svc := testService
 
 	q1 := svc.GetByAudioID("en", "11900001")
 	if q1 == nil {

@@ -5,8 +5,10 @@ import (
 	"testing"
 )
 
+var testParser = NewParser()
+
 func TestParseAll_EpisodeAndContentTypes(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	type testCase struct {
 		name            string
@@ -329,7 +331,7 @@ func TestParseAll_EpisodeAndContentTypes(t *testing.T) {
 }
 
 func TestParseAll_ContentTypeTransitions(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	// Simulate a sequence: episode → tea → ura → new episode (resets content type)
 	lines := []string{
@@ -370,7 +372,7 @@ func TestParseAll_ContentTypeTransitions(t *testing.T) {
 }
 
 func TestParseAll_OmakeTransition(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	lines := []string{
 		"new_episode 8",
@@ -400,7 +402,7 @@ func TestParseAll_OmakeTransition(t *testing.T) {
 }
 
 func TestParseAll_RedTruth(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	t.Run("english red truth - Beatrice", func(t *testing.T) {
 		lines := []string{
@@ -456,7 +458,7 @@ func TestParseAll_RedTruth(t *testing.T) {
 }
 
 func TestParseAll_BlueTruth(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	t.Run("english blue truth - Battler", func(t *testing.T) {
 		lines := []string{
@@ -515,7 +517,7 @@ func TestParseAll_BlueTruth(t *testing.T) {
 }
 
 func TestParseAll_ColourFormatting(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	lines := []string{
 		"new_episode 1",
@@ -542,7 +544,7 @@ func TestParseAll_ColourFormatting(t *testing.T) {
 }
 
 func TestParseAll_RubyAnnotations(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	lines := []string{
 		"new_episode 1",
@@ -566,7 +568,7 @@ func TestParseAll_RubyAnnotations(t *testing.T) {
 }
 
 func TestParseAll_FontNameFormatting(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	// Ura 1 line with {f:5:Bernkastel}
 	lines := []string{
@@ -591,7 +593,7 @@ func TestParseAll_FontNameFormatting(t *testing.T) {
 }
 
 func TestParseAll_ItalicFormatting(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	lines := []string{
 		"new_episode 1",
@@ -615,7 +617,7 @@ func TestParseAll_ItalicFormatting(t *testing.T) {
 }
 
 func TestParseAll_LineBreaks(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	t.Run("english narrator with line break tag", func(t *testing.T) {
 		lines := []string{
@@ -662,7 +664,7 @@ func TestParseAll_LineBreaks(t *testing.T) {
 }
 
 func TestParseAll_NarratorLines(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	t.Run("english narrator basic", func(t *testing.T) {
 		lines := []string{
@@ -779,7 +781,7 @@ func TestParseAll_NarratorLines(t *testing.T) {
 }
 
 func TestParseAll_ShortLineFiltering(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	lines := []string{
 		"new_episode 1",
@@ -799,7 +801,7 @@ func TestParseAll_ShortLineFiltering(t *testing.T) {
 }
 
 func TestParseAll_MultipleAudioIDs(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	lines := []string{
 		"new_episode 5",
@@ -818,7 +820,7 @@ func TestParseAll_MultipleAudioIDs(t *testing.T) {
 }
 
 func TestParseAll_DuplicateAudioIDsDeduped(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	// Simulate a line with duplicate audio IDs
 	lines := []string{
@@ -836,7 +838,7 @@ func TestParseAll_DuplicateAudioIDsDeduped(t *testing.T) {
 }
 
 func TestParseAll_SpecialCharTags(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	t.Run("qt tag produces double quote", func(t *testing.T) {
 		lines := []string{
@@ -882,7 +884,7 @@ func TestParseAll_SpecialCharTags(t *testing.T) {
 }
 
 func TestParseAll_EpisodeFromAudioID(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	// Without a new_episode marker, the episode should be derived from the audio ID
 	lines := []string{
@@ -901,7 +903,7 @@ func TestParseAll_EpisodeFromAudioID(t *testing.T) {
 }
 
 func TestParseAll_EpisodeMarkerOverridesAudioID(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	lines := []string{
 		"new_episode 7",
@@ -918,7 +920,7 @@ func TestParseAll_EpisodeMarkerOverridesAudioID(t *testing.T) {
 }
 
 func TestParseAll_NonDialogueNonNarratorLinesSkipped(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	lines := []string{
 		"new_episode 1",
@@ -939,7 +941,7 @@ func TestParseAll_NonDialogueNonNarratorLinesSkipped(t *testing.T) {
 }
 
 func TestParseAll_EmptyInput(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	quotes := p.ParseAll(nil)
 	if len(quotes) != 0 {
@@ -953,7 +955,7 @@ func TestParseAll_EmptyInput(t *testing.T) {
 }
 
 func TestParseAll_AllEpisodes(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	// Verify all 8 episodes can be parsed
 	var lines []string
@@ -980,7 +982,7 @@ func TestParseAll_AllEpisodes(t *testing.T) {
 }
 
 func TestParseAll_AllContentTypesPerEpisode(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	// For each episode 1-8, test all content types
 	for ep := 1; ep <= 8; ep++ {
@@ -1012,7 +1014,7 @@ func TestParseAll_AllContentTypesPerEpisode(t *testing.T) {
 }
 
 func TestParseAll_UnclosedTagCleanup(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	// Unclosed {p:1: tag (no closing }) — from real data in episode 7
 	lines := []string{
@@ -1036,7 +1038,7 @@ func TestParseAll_UnclosedTagCleanup(t *testing.T) {
 }
 
 func TestParseAll_MixedRedBlueTruth(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	// Real line from episode 5 tea party: Erika uses both red and blue truth
 	lines := []string{
@@ -1074,7 +1076,7 @@ func TestParseAll_MixedRedBlueTruth(t *testing.T) {
 }
 
 func TestParseAll_NestedTagsInTruth(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	lines := []string{
 		"new_episode 2",
@@ -1100,7 +1102,7 @@ func TestParseAll_NestedTagsInTruth(t *testing.T) {
 }
 
 func TestParseAll_NestedNobrInTruth(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	lines := []string{
 		"new_episode 5",
@@ -1129,7 +1131,7 @@ func TestParseAll_NestedNobrInTruth(t *testing.T) {
 }
 
 func TestParseAll_AlphanumericAudioIDs(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	tests := []struct {
 		name         string
@@ -1193,7 +1195,7 @@ func TestParseAll_AlphanumericAudioIDs(t *testing.T) {
 }
 
 func TestParseAll_OmakeNarratorLine(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	lines := []string{
 		"*o1_0",
@@ -1221,7 +1223,7 @@ func TestParseAll_OmakeNarratorLine(t *testing.T) {
 }
 
 func TestParseAll_CleanupPatterns(t *testing.T) {
-	p := NewParser()
+	p := testParser
 
 	tests := []struct {
 		name     string
