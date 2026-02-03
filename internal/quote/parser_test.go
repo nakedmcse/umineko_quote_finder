@@ -17,7 +17,6 @@ func TestParseAll_EpisodeAndContentTypes(t *testing.T) {
 		wantEpisode     int
 		wantContentType string
 		wantCharID      string
-		wantCharName    string
 		wantAudioID     string
 		enTextContains  []string
 		jaTextContains  []string
@@ -41,7 +40,6 @@ func TestParseAll_EpisodeAndContentTypes(t *testing.T) {
 			wantEpisode:     1,
 			wantContentType: "",
 			wantCharID:      "19",
-			wantCharName:    "NanjoTerumasa",
 			wantAudioID:     "11900001, 11900002",
 			enTextContains:  []string{"Again", "alcohol"},
 			jaTextContains:  []string{"また", "お酒"},
@@ -61,7 +59,6 @@ func TestParseAll_EpisodeAndContentTypes(t *testing.T) {
 			wantEpisode:     5,
 			wantContentType: "",
 			wantCharID:      "27",
-			wantCharName:    "Beatrice",
 			wantAudioID:     "50700001, 50700002, 50700003, 50700004",
 			enTextContains:  []string{"You idiot", "kill her"},
 			jaTextContains:  []string{"この馬鹿", "殺したら"},
@@ -81,7 +78,6 @@ func TestParseAll_EpisodeAndContentTypes(t *testing.T) {
 			wantEpisode:     8,
 			wantContentType: "",
 			wantCharID:      "10",
-			wantCharName:    "Battler",
 			wantAudioID:     "80100001, 80100002",
 			enTextContains:  []string{"listening", "Ange"},
 			jaTextContains:  []string{"縁寿"},
@@ -101,7 +97,6 @@ func TestParseAll_EpisodeAndContentTypes(t *testing.T) {
 			wantEpisode:     1,
 			wantContentType: "tea",
 			wantCharID:      "10",
-			wantCharName:    "Battler",
 			wantAudioID:     "90100001, 90100002",
 			enTextContains:  []string{"Hey, everyone", "Umineko"},
 			jaTextContains:  []string{"おー、みんな", "うみねこ"},
@@ -119,7 +114,6 @@ func TestParseAll_EpisodeAndContentTypes(t *testing.T) {
 			wantEpisode:     1,
 			wantContentType: "tea",
 			wantCharID:      "13",
-			wantCharName:    "Maria",
 			wantAudioID:     "90400001, 90400002, 90400003",
 			enTextContains:  []string{"Uu-", "bad ending"},
 			jaTextContains:  []string{"うー", "バッドエンド"},
@@ -137,7 +131,6 @@ func TestParseAll_EpisodeAndContentTypes(t *testing.T) {
 			wantEpisode:     5,
 			wantContentType: "tea",
 			wantCharID:      "28",
-			wantCharName:    "Bernkastel",
 			wantAudioID:     "52100771",
 			enTextContains:  []string{"Erika", "Dlanor"},
 			jaTextContains:  []string{"ヱリカ", "ドラノール"},
@@ -157,7 +150,6 @@ func TestParseAll_EpisodeAndContentTypes(t *testing.T) {
 			wantEpisode:     1,
 			wantContentType: "ura",
 			wantCharID:      "27",
-			wantCharName:    "Beatrice",
 			wantAudioID:     "90700088, 90700089",
 			enTextContains:  []string{"tea", "prepare"},
 			jaTextContains:  []string{"紅茶", "淹れよう"},
@@ -175,7 +167,6 @@ func TestParseAll_EpisodeAndContentTypes(t *testing.T) {
 			wantEpisode:     1,
 			wantContentType: "ura",
 			wantCharID:      "28",
-			wantCharName:    "Bernkastel",
 			wantAudioID:     "92100001, 92100002",
 			enTextContains:  []string{"Dried plum", "200 yen"},
 			jaTextContains:  []string{"梅干紅茶", "２００円"},
@@ -193,7 +184,6 @@ func TestParseAll_EpisodeAndContentTypes(t *testing.T) {
 			wantEpisode:     6,
 			wantContentType: "",
 			wantCharID:      "50",
-			wantCharName:    "Featherine",
 			wantAudioID:     "65000001, 65000002",
 			enTextContains:  []string{"Splendid", "veil"},
 			jaTextContains:  []string{"見事", "見破った"},
@@ -211,7 +201,6 @@ func TestParseAll_EpisodeAndContentTypes(t *testing.T) {
 			wantEpisode:     6,
 			wantContentType: "",
 			wantCharID:      "50",
-			wantCharName:    "Featherine",
 			wantAudioID:     "65000011",
 			enTextContains:  []string{"observer", "Fragments", "Beatrice"},
 			jaTextContains:  []string{"観測者", "ベアトリーチェ"},
@@ -229,7 +218,6 @@ func TestParseAll_EpisodeAndContentTypes(t *testing.T) {
 			wantEpisode:     6,
 			wantContentType: "",
 			wantCharID:      "50",
-			wantCharName:    "Featherine",
 			wantAudioID:     "65000003, 65000004",
 			enTextContains:  []string{"intriguing", "child of man", "boredom"},
 			jaTextContains:  []string{"面白きかな", "人の子", "退屈"},
@@ -245,7 +233,6 @@ func TestParseAll_EpisodeAndContentTypes(t *testing.T) {
 			wantEpisode:     1,
 			wantContentType: "omake",
 			wantCharID:      "04",
-			wantCharName:    "Jessica",
 			wantAudioID:     "10200442",
 			enTextContains:  []string{"KyaaaaaAAAAAAaaaaaAAaa"},
 		},
@@ -262,7 +249,6 @@ func TestParseAll_EpisodeAndContentTypes(t *testing.T) {
 			wantEpisode:     6,
 			wantContentType: "",
 			wantCharID:      "00",
-			wantCharName:    "GroupVoices",
 			wantAudioID:     "awase6100_o",
 			enTextContains:  []string{"With your fellow monsters"},
 			jaTextContains:  []string{"バケモノ同士"},
@@ -286,8 +272,8 @@ func TestParseAll_EpisodeAndContentTypes(t *testing.T) {
 			if en.CharacterID != tt.wantCharID {
 				t.Errorf("EN characterID: got %q, want %q", en.CharacterID, tt.wantCharID)
 			}
-			if en.Character != tt.wantCharName {
-				t.Errorf("EN character: got %q, want %q", en.Character, tt.wantCharName)
+			if en.Character != CharacterNames[tt.wantCharID] {
+				t.Errorf("EN character: got %q, want %q", en.Character, CharacterNames[tt.wantCharID])
 			}
 			if en.AudioID != tt.wantAudioID {
 				t.Errorf("EN audioID: got %q, want %q", en.AudioID, tt.wantAudioID)
@@ -314,8 +300,8 @@ func TestParseAll_EpisodeAndContentTypes(t *testing.T) {
 				if ja.CharacterID != tt.wantCharID {
 					t.Errorf("JA characterID: got %q, want %q", ja.CharacterID, tt.wantCharID)
 				}
-				if ja.Character != tt.wantCharName {
-					t.Errorf("JA character: got %q, want %q", ja.Character, tt.wantCharName)
+				if ja.Character != CharacterNames[tt.wantCharID] {
+					t.Errorf("JA character: got %q, want %q", ja.Character, CharacterNames[tt.wantCharID])
 				}
 				if ja.AudioID != tt.wantAudioID {
 					t.Errorf("JA audioID: got %q, want %q", ja.AudioID, tt.wantAudioID)
@@ -417,8 +403,8 @@ func TestParseAll_RedTruth(t *testing.T) {
 		if q.Episode != 2 {
 			t.Errorf("episode: got %d, want 2", q.Episode)
 		}
-		if q.CharacterID != "27" || q.Character != "Beatrice" {
-			t.Errorf("character: got %q/%q, want 27/Beatrice", q.CharacterID, q.Character)
+		if q.CharacterID != "27" || q.Character != CharacterNames["27"] {
+			t.Errorf("character: got %q/%q, want 27/%s", q.CharacterID, q.Character, CharacterNames["27"])
 		}
 		if !strings.Contains(q.Text, "Everything I speak in red is the truth") {
 			t.Errorf("plain text missing red truth content: %q", q.Text)
@@ -473,8 +459,8 @@ func TestParseAll_BlueTruth(t *testing.T) {
 		if q.Episode != 4 {
 			t.Errorf("episode: got %d, want 4", q.Episode)
 		}
-		if q.CharacterID != "10" || q.Character != "Battler" {
-			t.Errorf("character: got %q/%q, want 10/Battler", q.CharacterID, q.Character)
+		if q.CharacterID != "10" || q.Character != CharacterNames["10"] {
+			t.Errorf("character: got %q/%q, want 10/%s", q.CharacterID, q.Character, CharacterNames["10"])
 		}
 		if !strings.Contains(q.Text, "Ushiromiya Kinzo is already dead") {
 			t.Errorf("plain text missing blue truth content: %q", q.Text)
@@ -1212,8 +1198,8 @@ func TestParseAll_MixedRedBlueTruth(t *testing.T) {
 	if q.Episode != 5 || q.ContentType != "tea" {
 		t.Errorf("got ep=%d ct=%q, want ep=5 ct=tea", q.Episode, q.ContentType)
 	}
-	if q.CharacterID != "46" || q.Character != "Erika" {
-		t.Errorf("character: got %q/%q, want 46/Erika", q.CharacterID, q.Character)
+	if q.CharacterID != "46" || q.Character != CharacterNames["46"] {
+		t.Errorf("character: got %q/%q, want 46/%s", q.CharacterID, q.Character, CharacterNames["46"])
 	}
 
 	// Both red and blue truth should be present in HTML

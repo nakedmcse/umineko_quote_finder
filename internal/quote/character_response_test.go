@@ -14,8 +14,8 @@ func TestNewCharacterResponse_NilQuotes(t *testing.T) {
 	if resp.CharacterID != "10" {
 		t.Errorf("CharacterID: got %q, want %q", resp.CharacterID, "10")
 	}
-	if resp.Character != "Battler" {
-		t.Errorf("Character: got %q, want %q", resp.Character, "Battler")
+	if resp.Character != CharacterNames["10"] {
+		t.Errorf("Character: got %q, want %q", resp.Character, CharacterNames["10"])
 	}
 }
 
@@ -44,8 +44,8 @@ func TestNewCharacterResponse_Pagination(t *testing.T) {
 	if resp.Total != 25 {
 		t.Errorf("Total: got %d, want 25", resp.Total)
 	}
-	if resp.Character != "Beatrice" {
-		t.Errorf("Character: got %q, want %q", resp.Character, "Beatrice")
+	if resp.Character != CharacterNames["27"] {
+		t.Errorf("Character: got %q, want %q", resp.Character, CharacterNames["27"])
 	}
 }
 

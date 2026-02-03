@@ -33,8 +33,8 @@ func TestNewStats_Compute_AllEpisodes(t *testing.T) {
 	if sr.TopSpeakers[0].CharacterID != "10" {
 		t.Errorf("TopSpeakers[0] should be Battler (10), got %q", sr.TopSpeakers[0].CharacterID)
 	}
-	if sr.TopSpeakers[0].Name != "Battler" {
-		t.Errorf("TopSpeakers[0] name: got %q, want %q", sr.TopSpeakers[0].Name, "Battler")
+	if sr.TopSpeakers[0].Name != CharacterNames["10"] {
+		t.Errorf("TopSpeakers[0] name: got %q, want %q", sr.TopSpeakers[0].Name, CharacterNames["10"])
 	}
 	if sr.TopSpeakers[0].Count != 5 {
 		t.Errorf("TopSpeakers[0] count: got %d, want 5", sr.TopSpeakers[0].Count)
@@ -163,11 +163,11 @@ func TestStats_CharacterNames(t *testing.T) {
 	s := NewStats(quotes)
 	result := s.Compute(AllEpisodes).(*statsResult)
 
-	if result.CharacterNames["10"] != "Battler" {
-		t.Errorf("CharacterNames[10]: got %q, want %q", result.CharacterNames["10"], "Battler")
+	if result.CharacterNames["10"] != CharacterNames["10"] {
+		t.Errorf("CharacterNames[10]: got %q, want %q", result.CharacterNames["10"], CharacterNames["10"])
 	}
-	if result.CharacterNames["27"] != "Beatrice" {
-		t.Errorf("CharacterNames[27]: got %q, want %q", result.CharacterNames["27"], "Beatrice")
+	if result.CharacterNames["27"] != CharacterNames["27"] {
+		t.Errorf("CharacterNames[27]: got %q, want %q", result.CharacterNames["27"], CharacterNames["27"])
 	}
 }
 

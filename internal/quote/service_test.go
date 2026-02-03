@@ -126,8 +126,8 @@ func TestService_Browse(t *testing.T) {
 	if resp.CharacterID != "10" {
 		t.Errorf("CharacterID: got %q, want %q", resp.CharacterID, "10")
 	}
-	if resp.Character != "Battler" {
-		t.Errorf("Character: got %q, want %q", resp.Character, "Battler")
+	if resp.Character != CharacterNames["10"] {
+		t.Errorf("Character: got %q, want %q", resp.Character, CharacterNames["10"])
 	}
 	if len(resp.Quotes) > 10 {
 		t.Errorf("Quotes length exceeds limit: got %d", len(resp.Quotes))
@@ -177,8 +177,8 @@ func TestService_GetByCharacter(t *testing.T) {
 	if resp.Total == 0 {
 		t.Fatal("expected results for Beatrice")
 	}
-	if resp.Character != "Beatrice" {
-		t.Errorf("Character: got %q, want %q", resp.Character, "Beatrice")
+	if resp.Character != CharacterNames["27"] {
+		t.Errorf("Character: got %q, want %q", resp.Character, CharacterNames["27"])
 	}
 	for i := 0; i < len(resp.Quotes); i++ {
 		if resp.Quotes[i].CharacterID != "27" {
@@ -487,11 +487,11 @@ func TestService_GetCharacters(t *testing.T) {
 	if len(chars) == 0 {
 		t.Fatal("expected characters map to be non-empty")
 	}
-	if chars["10"] != "Battler" {
-		t.Errorf("chars[10]: got %q, want %q", chars["10"], "Battler")
+	if chars["10"] != CharacterNames["10"] {
+		t.Errorf("chars[10]: got %q, want %q", chars["10"], CharacterNames["10"])
 	}
-	if chars["27"] != "Beatrice" {
-		t.Errorf("chars[27]: got %q, want %q", chars["27"], "Beatrice")
+	if chars["27"] != CharacterNames["27"] {
+		t.Errorf("chars[27]: got %q, want %q", chars["27"], CharacterNames["27"])
 	}
 }
 

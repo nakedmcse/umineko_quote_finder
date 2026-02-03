@@ -6,7 +6,7 @@ func TestNewSearchResult(t *testing.T) {
 	q := ParsedQuote{
 		Text:        "test quote",
 		CharacterID: "10",
-		Character:   "Battler",
+		Character:   CharacterNames["10"],
 		Episode:     1,
 	}
 
