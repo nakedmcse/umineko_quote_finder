@@ -15,19 +15,24 @@ A quote search engine for Umineko no Naku Koro ni. Search through thousands of l
   - [Cross-compile](#cross-compile)
 - [Docker](#docker)
 - [Data](#data)
+- [Architecture: The Lexar Package](#architecture-the-lexar-package)
+  - [Pipeline Overview](#pipeline-overview)
+  - [Package Structure](#package-structure)
+  - [Key Design Decisions](#key-design-decisions)
 - [Script Tag Parsing](#script-tag-parsing)
   - [Tags with HTML rendering](#tags-with-html-rendering)
   - [Preset colour reference](#preset-colour-reference)
   - [Tags stripped to content](#tags-stripped-to-content)
   - [Special character tags](#special-character-tags)
   - [Other cleanup](#other-cleanup)
+- [Contributors](#contributors)
 
 ## Features
 
-- Fuzzy search through all dialogue
+- Search through all dialogue
 - Filter by character and episode
 - Random quote generator
-- Scene context viewer — see surrounding dialogue for any quote
+- Scene context viewer, see surrounding dialogue for any quote
 - English/Japanese language toggle
 - Inline audio playback for voiced lines
 - Umineko-themed web interface
@@ -67,7 +72,7 @@ Then run the setup script:
 
 The script will detect whether `VOICE_ZIP_URL` is a local file or a URL and handle it accordingly. If the audio directory already exists, it skips extraction.
 
-The app works without audio files — quotes will display normally but without playback controls.
+The app works without audio files, quotes will display normally but without playback controls.
 
 ### Expected zip structure
 
@@ -87,7 +92,7 @@ voice.zip
 
 | Endpoint                             | Description                            |
 |--------------------------------------|----------------------------------------|
-| `GET /api/v1/search`                 | Fuzzy search quotes                    |
+| `GET /api/v1/search`                 | Search quotes                          |
 | `GET /api/v1/random`                 | Get random quote                       |
 | `GET /api/v1/character/:id`          | Get quotes by character ID             |
 | `GET /api/v1/context/:audioId`       | Get surrounding dialogue for a quote   |
@@ -180,6 +185,103 @@ internal/quote/data/
 
 Text files are embedded at compile time. Audio files are read from disk at runtime and are organized by character ID subdirectory.
 
+## Architecture: The Lexar Package
+
+The `internal/lexar` package handles parsing Umineko script files and extracting quotes. It follows a pipeline architecture that separates concerns.
+
+### Pipeline Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              Source Text                                    │
+│  d [lv 0*"27"*"10100001"]`"{p:1:Without love, it cannot be seen.}"`[\]     │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           LEXER (lexer.go)                                  │
+│  Tokenises input into a stream of typed tokens                              │
+│  • TokenCommand: "d"                                                        │
+│  • TokenInlineCommand: "lv 0*\"27\"*\"10100001\""                           │
+│  • TokenBacktick: "`"                                                       │
+│  • TokenFormatTag: "p:1:Without love, it cannot be seen."                   │
+│  • etc.                                                                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          PARSER (parser.go)                                 │
+│  Builds Abstract Syntax Tree from tokens                                    │
+│                                                                             │
+│  Script                                                                     │
+│   └── Lines[]                                                               │
+│        ├── EpisodeMarkerLine { Episode: 1, Type: "episode" }                │
+│        ├── PresetDefineLine { ID: 1, Colour: "#FF0000" }                    │
+│        ├── LabelLine { Name: "ep1_scene1" }                                 │
+│        └── DialogueLine                                                     │
+│             ├── Command: "d"                                                │
+│             └── Content[]                                                   │
+│                  ├── VoiceCommand { CharacterID: "27", AudioID: "..." }     │
+│                  └── FormatTag { Name: "p", Param: "1", Content: [...] }    │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       EXTRACTOR (extractor.go)                              │
+│  Walks AST, extracts quotes with metadata                                   │
+│                                                                             │
+│  ExtractedQuote {                                                           │
+│      Content:     []DialogueElement  ◄── Raw AST, not yet transformed       │
+│      CharacterID: "27"                                                      │
+│      AudioID:     "10100001"                                                │
+│      Episode:     1                                                         │
+│      Truth:       { HasRed: true, HasBlue: false }                          │
+│  }                                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                   TRANSFORMER FACTORY (transformer/)                        │
+│  Converts raw AST to output format on demand                                │
+│                                                                             │
+│  factory.MustGet(FormatPlainText) ──► "Without love, it cannot be seen."    │
+│  factory.MustGet(FormatHTML)      ──► "<span class=\"red-truth\">...</span>"│
+│  factory.MustGet(FormatJSON)      ──► (add your own transformer)            │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Package Structure
+
+```
+internal/lexar/
+├── ast/                    # Abstract Syntax Tree types
+│   └── ast.go              # Token, Line, DialogueElement types
+├── transformer/            # Output format transformers
+│   ├── transformer.go      # Transformer interface
+│   ├── factory.go          # Factory for obtaining transformers
+│   ├── preset.go           # Preset colour/class context
+│   ├── plaintext.go        # Plain text output
+│   └── html.go             # HTML output with styling
+├── lexer.go                # Tokeniser
+├── parser.go               # AST builder
+├── extractor.go            # Quote extraction
+└── truth.go                # Red/blue truth detection
+```
+
+### Key Design Decisions
+
+**AST stores raw content**, the extractor outputs `ExtractedQuote` with raw `[]DialogueElement`, not pre-transformed strings. This allows transformation to happen on-demand via the factory.
+
+**Factory pattern for transformers**, adding a new output format (e.g., JSON, Markdown) requires:
+1. Implement the `Transformer` interface
+2. Register it in the factory
+
+No changes are needed to the extractor or parser.
+
+**Preset context**, colour presets (`{p:1:text}`) are defined in script headers via `preset_define`. The `PresetContext` collects these definitions and provides semantic class lookups (preset 1 → "red-truth", preset 2 → "blue-truth") and dynamic colour lookups for other presets.
+
+**Truth detection**, red and blue truth are detected by walking the AST looking for preset tags with semantic classes. This is stored as `TruthFlags` with `HasRed` and `HasBlue` booleans, allowing quotes with mixed truth (both red and blue) to appear in both filters.
+
 ## Script Tag Parsing
 
 The source text files use [ONScripter-RU](https://github.com/umineko-project/onscripter-ru) dialogue formatting. The parser strips or converts these tags for display. Tags are processed in a loop to handle nesting (e.g. `{nobr:{m:-5:——}—}`).
@@ -212,7 +314,7 @@ The `{p:N:text}` tag applies a style preset defined in the script header via `pr
 | 41     | `#FFAA00` | Gold text     | `<span style="color:#FFAA00">`      |
 | 42     | `#AA71FF` | Purple text   | `<span style="color:#AA71FF">`      |
 
-**Menu/UI presets** (not rendered — stripped to plain text if they appear):
+**Menu/UI presets** (not rendered, stripped to plain text if they appear):
 
 | Preset | Usage                          |
 |--------|--------------------------------|
@@ -263,17 +365,36 @@ These tags control visual styling in the game engine (font size, spacing, line b
 
 These are replaced before other processing.
 
-| Tag                  | Replacement                             |
-|----------------------|-----------------------------------------|
-| `{0}`                | *(zero-width space, removed)*           |
-| `{-}`                | *(soft hyphen, removed)*                |
-| `{qt}`               | `"`                                     |
-| `{ob}` / `{eb}`      | *(removed — stray braces are stripped)* |
-| `{os}` / `{es}`      | `[` / `]`                               |
-| `{t}` / `{parallel}` | *(parallel display marker, removed)*    |
+| Tag                  | Replacement                            |
+|----------------------|----------------------------------------|
+| `{0}`                | *(zero-width space, removed)*          |
+| `{-}`                | *(soft hyphen, removed)*               |
+| `{qt}`               | `"`                                    |
+| `{ob}` / `{eb}`      | *(removed, stray braces are stripped)* |
+| `{os}` / `{es}`      | `[` / `]`                              |
+| `{t}` / `{parallel}` | *(parallel display marker, removed)*   |
 
 ### Other cleanup
 
 - Backticks (`` ` ``), inline commands (`[@]`, `[\]`, `[|]`), and voice metadata (`[lv ...]`) are stripped
 - `{Comment:...}` translator notes are stripped entirely
 - Any remaining `{` or `}` are stripped after all tag processing (catches stray braces from tags that span across backtick segments, e.g. `{p:1:` red truth split across voice lines)
+
+## Contributors
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/HannahBanana1312">
+        <img src="https://avatars.githubusercontent.com/u/36461227?v=4" width="100px;" alt="Hannah"/><br />
+        <sub><b>Hannah</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/nakedmcse">
+        <img src="https://avatars.githubusercontent.com/u/133156975?v=4" width="100px;" alt="Walker Boh"/><br />
+        <sub><b>Walker Boh</b></sub>
+      </a>
+    </td>
+  </tr>
+</table>
