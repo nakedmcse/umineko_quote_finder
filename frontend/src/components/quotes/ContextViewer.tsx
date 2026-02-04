@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAppContext } from "../../hooks/useAppContext";
 import { getContext } from "../../api/endpoints";
 import type { ContextResponse } from "../../types/api";
@@ -16,6 +16,7 @@ export function ContextViewer({ audioId, onQuoteClick, langOverride }: ContextVi
     const [visible, setVisible] = useState(false);
     const [loading, setLoading] = useState(false);
     const firstId = audioId.split(", ")[0];
+    const prevFirstId = useRef(firstId);
 
     const fetchContext = useCallback(
         async (lang?: Language) => {
@@ -35,6 +36,15 @@ export function ContextViewer({ audioId, onQuoteClick, langOverride }: ContextVi
         },
         [firstId, langOverride, language],
     );
+
+    useEffect(() => {
+        if (firstId !== prevFirstId.current) {
+            prevFirstId.current = firstId;
+            if (visible) {
+                fetchContext();
+            }
+        }
+    }, [firstId, visible, fetchContext]);
 
     const handleToggle = useCallback(() => {
         if (visible) {
