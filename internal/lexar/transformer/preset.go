@@ -21,17 +21,27 @@ func DefaultSemanticPresets() map[string]string {
 	}
 }
 
-// NewPresetContext creates a PresetContext with default semantic presets.
+// DefaultDynamicColours returns the built-in dynamic colour mappings.
+// These can be overridden by preset_define lines in a script.
+func DefaultDynamicColours() map[string]string {
+	return map[string]string{
+		"41": "#FFAA00", // Gold text
+		"42": "#AA71FF", // Purple text
+	}
+}
+
+// NewPresetContext creates a PresetContext with default semantic presets and dynamic colours.
 func NewPresetContext() *PresetContext {
 	return &PresetContext{
 		SemanticPresets: DefaultSemanticPresets(),
-		DynamicColours:  make(map[string]string),
+		DynamicColours:  DefaultDynamicColours(),
 	}
 }
 
 // CollectFromScript extracts dynamic colours from preset_define lines in a script.
+// Colours from the script override the defaults.
 func (p *PresetContext) CollectFromScript(script *ast.Script) {
-	p.DynamicColours = make(map[string]string)
+	p.DynamicColours = DefaultDynamicColours()
 
 	for _, line := range script.Lines {
 		if preset, ok := line.(*ast.PresetDefineLine); ok {

@@ -111,8 +111,18 @@ func TestCollectFromScript_SkipsWhiteAndEmpty(t *testing.T) {
 
 	ctx.CollectFromScript(script)
 
-	if len(ctx.DynamicColours) != 0 {
-		t.Errorf("expected 0 dynamic colours, got %d: %v", len(ctx.DynamicColours), ctx.DynamicColours)
+	defaults := DefaultDynamicColours()
+	if len(ctx.DynamicColours) != len(defaults) {
+		t.Errorf("expected %d dynamic colours (defaults only), got %d: %v", len(defaults), len(ctx.DynamicColours), ctx.DynamicColours)
+	}
+	if ctx.GetDynamicColour("0") != "" {
+		t.Error("white preset 0 should have been skipped")
+	}
+	if ctx.GetDynamicColour("3") != "" {
+		t.Error("white preset 3 should have been skipped")
+	}
+	if ctx.GetDynamicColour("5") != "" {
+		t.Error("empty preset 5 should have been skipped")
 	}
 }
 
@@ -121,20 +131,24 @@ func TestCollectFromScript_ResetsOnEachCall(t *testing.T) {
 
 	script1 := &ast.Script{
 		Lines: []ast.Line{
-			&ast.PresetDefineLine{ID: 41, Colour: "#FFAA00"},
+			&ast.PresetDefineLine{ID: 99, Colour: "#123456"},
 		},
 	}
 	ctx.CollectFromScript(script1)
 
-	if ctx.GetDynamicColour("41") == "" {
-		t.Fatal("expected preset 41 after first collection")
+	if ctx.GetDynamicColour("99") == "" {
+		t.Fatal("expected preset 99 after first collection")
 	}
 
 	script2 := &ast.Script{Lines: []ast.Line{}}
 	ctx.CollectFromScript(script2)
 
-	if got := ctx.GetDynamicColour("41"); got != "" {
-		t.Errorf("expected preset 41 to be cleared after second collection, got %q", got)
+	if got := ctx.GetDynamicColour("99"); got != "" {
+		t.Errorf("expected preset 99 to be cleared after second collection, got %q", got)
+	}
+	// Defaults should still be present after reset
+	if ctx.GetDynamicColour("41") == "" {
+		t.Error("expected default preset 41 to persist after reset")
 	}
 }
 
@@ -143,7 +157,7 @@ func TestCollectFromScript_IgnoresNonPresetLines(t *testing.T) {
 	script := &ast.Script{
 		Lines: []ast.Line{
 			&ast.CommentLine{Text: "this is a comment"},
-			&ast.PresetDefineLine{ID: 42, Colour: "#AA71FF"},
+			&ast.PresetDefineLine{ID: 99, Colour: "#ABCDEF"},
 			&ast.EpisodeMarkerLine{Episode: 1},
 			&ast.DialogueLine{Command: "d"},
 		},
@@ -151,11 +165,12 @@ func TestCollectFromScript_IgnoresNonPresetLines(t *testing.T) {
 
 	ctx.CollectFromScript(script)
 
-	if got := ctx.GetDynamicColour("42"); got != "#AA71FF" {
-		t.Errorf("preset 42 = %q, want %q", got, "#AA71FF")
+	if got := ctx.GetDynamicColour("99"); got != "#ABCDEF" {
+		t.Errorf("preset 99 = %q, want %q", got, "#ABCDEF")
 	}
-	if len(ctx.DynamicColours) != 1 {
-		t.Errorf("expected 1 dynamic colour, got %d", len(ctx.DynamicColours))
+	expected := len(DefaultDynamicColours()) + 1 // defaults + preset 99
+	if len(ctx.DynamicColours) != expected {
+		t.Errorf("expected %d dynamic colours, got %d", expected, len(ctx.DynamicColours))
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 	"embed"
 	"image/color"
 	"image/png"
+	"strings"
 	"sync"
 
 	"github.com/fogleman/gg"
@@ -65,7 +66,7 @@ func (g *ImageGenerator) boldOrFallback(lang string) *sfnt.Font {
 	return g.boldFont
 }
 
-func (g *ImageGenerator) Generate(audioId, lang, text, character string, episode int, contentType string) ([]byte, error) {
+func (g *ImageGenerator) Generate(audioId, lang, text, textHtml, character string, episode int, contentType string) ([]byte, error) {
 	cacheKey := audioId + ":" + lang
 	if cached, ok := g.cache.Load(cacheKey); ok {
 		return cached.([]byte), nil
@@ -92,12 +93,18 @@ func (g *ImageGenerator) Generate(audioId, lang, text, character string, episode
 	if err != nil {
 		return nil, err
 	}
-
-	displayText := truncateText(text, 300)
-
 	dc.SetFontFace(textFace)
-	dc.SetColor(creamColor)
-	dc.DrawStringWrapped(displayText, 60, 120, 0, 0, float64(imgWidth)-120, 1.5, gg.AlignLeft)
+
+	maxWidth := float64(imgWidth) - 120
+	if textHtml != "" {
+		segments := parseHTMLSegments(textHtml, creamColor)
+		segments = truncateSegments(segments, 300)
+		g.drawColouredText(dc, segments, 60, 120, maxWidth, 1.5)
+	} else {
+		displayText := truncateText(text, 300)
+		dc.SetColor(creamColor)
+		dc.DrawStringWrapped(displayText, 60, 120, 0, 0, maxWidth, 1.5, gg.AlignLeft)
+	}
 
 	charFace, err := opentype.NewFace(g.boldOrFallback(lang), &opentype.FaceOptions{Size: 24, DPI: 72})
 	if err != nil {
@@ -133,6 +140,84 @@ func (g *ImageGenerator) Generate(audioId, lang, text, character string, episode
 	data := buf.Bytes()
 	g.cache.Store(cacheKey, data)
 	return data, nil
+}
+
+func (*ImageGenerator) drawColouredText(dc *gg.Context, segments []textSegment, x, y, maxWidth, lineSpacing float64) {
+	_, fh := dc.MeasureString("Mg")
+	lineH := fh * lineSpacing
+	curX := x
+	curY := y
+
+	for _, seg := range segments {
+		tokens := splitTokens(seg.Text)
+		for _, tok := range tokens {
+			if tok == "\n" {
+				curX = x
+				curY += lineH
+				continue
+			}
+
+			w, _ := dc.MeasureString(tok)
+
+			if w > maxWidth && tok != " " {
+				for _, r := range tok {
+					rs := string(r)
+					rw, _ := dc.MeasureString(rs)
+					if curX > x && (curX-x)+rw > maxWidth {
+						curX = x
+						curY += lineH
+					}
+					dc.SetColor(seg.Color)
+					dc.DrawString(rs, curX, curY)
+					curX += rw
+				}
+				continue
+			}
+
+			if curX > x && (curX-x)+w > maxWidth {
+				curX = x
+				curY += lineH
+			}
+
+			if curX == x && tok == " " {
+				continue
+			}
+
+			dc.SetColor(seg.Color)
+			dc.DrawString(tok, curX, curY)
+			curX += w
+		}
+	}
+}
+
+func splitTokens(s string) []string {
+	var tokens []string
+	var buf strings.Builder
+
+	for _, r := range s {
+		switch r {
+		case '\n':
+			if buf.Len() > 0 {
+				tokens = append(tokens, buf.String())
+				buf.Reset()
+			}
+			tokens = append(tokens, "\n")
+		case ' ':
+			if buf.Len() > 0 {
+				tokens = append(tokens, buf.String())
+				buf.Reset()
+			}
+			tokens = append(tokens, " ")
+		default:
+			buf.WriteRune(r)
+		}
+	}
+
+	if buf.Len() > 0 {
+		tokens = append(tokens, buf.String())
+	}
+
+	return tokens
 }
 
 func truncateText(s string, maxRunes int) string {
