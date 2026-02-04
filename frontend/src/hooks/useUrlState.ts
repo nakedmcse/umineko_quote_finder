@@ -2,8 +2,15 @@ import { useCallback, useEffect, useRef } from "react";
 import type { FilterState, Language, PushUrlParams } from "../types/app";
 
 interface UrlStateCallbacks {
-    onSearch: (query: string, offset: number, character: string, lang: Language) => void;
-    onBrowse: (character: string, offset: number, episode: string, lang: Language) => void;
+    onSearch: (
+        query: string,
+        offset: number,
+        character: string,
+        episode: string,
+        truth: string,
+        lang: Language,
+    ) => void;
+    onBrowse: (character: string, offset: number, episode: string, truth: string, lang: Language) => void;
     onStats: (lang: Language) => void;
     onQuoteLookup: (audioId: string, lang: Language) => void;
     onDefault: (lang: Language) => void;
@@ -45,7 +52,7 @@ export function useUrlState(callbacks: UrlStateCallbacks) {
         if (browse) {
             const character = browse !== "1" ? browse : "";
             cb.setFilters({ character, episode, truth });
-            cb.onBrowse(character, offset, episode, lang);
+            cb.onBrowse(character, offset, episode, truth, lang);
             return;
         }
 
@@ -53,7 +60,7 @@ export function useUrlState(callbacks: UrlStateCallbacks) {
         if (q) {
             const character = params.get("character") || "";
             cb.setFilters({ character, episode, truth });
-            cb.onSearch(q, offset, character, lang);
+            cb.onSearch(q, offset, character, episode, truth, lang);
             return;
         }
 

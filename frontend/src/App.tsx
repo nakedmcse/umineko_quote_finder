@@ -232,17 +232,17 @@ export default function App() {
 
     // URL state initialisation
     useUrlState({
-        onSearch: (query, offset, character, lang) => {
+        onSearch: (query, offset, character, episode, truth, lang) => {
             setSearchInputValue(query);
-            setFilters(prev => ({ ...prev, character }));
-            search.search(query, lang, offset, { ...filters, character }).then(() => {
+            setFilters(prev => ({ ...prev, character, episode, truth }));
+            search.search(query, lang, offset, { character, episode, truth }).then(() => {
                 setViewMode("search");
                 urlInitialised.current = true;
             });
         },
-        onBrowse: (character, offset, episode, lang) => {
-            setFilters(prev => ({ ...prev, character, episode }));
-            browse.browse(character, lang, offset, episode, filters.truth).then(() => {
+        onBrowse: (character, offset, episode, truth, lang) => {
+            setFilters(prev => ({ ...prev, character, episode, truth }));
+            browse.browse(character, lang, offset, episode, truth).then(() => {
                 setViewMode("browse");
                 urlInitialised.current = true;
             });
