@@ -1,6 +1,7 @@
-import { createContext, type ReactNode, useCallback, useLayoutEffect, useState } from "react";
+import { type ReactNode, useCallback, useLayoutEffect, useState } from "react";
 import { Chart as ChartJS } from "chart.js";
 import type { ThemeType } from "../types/app";
+import { ThemeContext } from "./themeContextValue";
 
 const STORAGE_KEY = "uq-theme";
 const DEFAULT_THEME: ThemeType = "featherine";
@@ -10,13 +11,6 @@ const THEME_CHART_COLOURS: Record<ThemeType, string> = {
     bernkastel: "#9bb5d0",
     lambdadelta: "#d09bb8",
 };
-
-export interface ThemeContextValue {
-    theme: ThemeType;
-    setTheme: (theme: ThemeType) => void;
-}
-
-export const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function getStoredTheme(): ThemeType {
     try {
