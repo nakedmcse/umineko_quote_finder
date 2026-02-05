@@ -7,7 +7,7 @@
 }
 
 html {
-    font-size: 16px;
+    font-size: 18px;
     scroll-behavior: smooth;
 }
 
@@ -1858,6 +1858,11 @@ body {
     margin: 0.75rem 0 0.5rem;
 }
 
+.builder-search-hint {
+    color: var(--gold);
+    font-style: italic;
+}
+
 /* Builder Search Results */
 .builder-results {
     display: flex;
@@ -1897,9 +1902,6 @@ body {
     color: var(--text);
     font-size: 0.95rem;
     line-height: 1.4;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .builder-result-meta {
@@ -1939,6 +1941,38 @@ body {
 .builder-result-btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+}
+
+.builder-clip-text {
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 2px 4px;
+    margin: 0 3px;
+    border-bottom: 1px dashed rgba(var(--gold-rgb), 0.4);
+    background: rgba(var(--gold-rgb), 0.06);
+    transition:
+        background 0.2s var(--ease-out),
+        color 0.2s var(--ease-out),
+        border-color 0.2s var(--ease-out);
+}
+
+.builder-clip-text:hover {
+    background: rgba(var(--gold-rgb), 0.2);
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+    border-bottom-style: solid;
+}
+
+.builder-clip-text.disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    border-bottom-color: transparent;
+    background: transparent;
+}
+
+.builder-clip-text.disabled:hover {
+    background: transparent;
+    color: inherit;
 }
 
 .builder-add-btn,

@@ -37,13 +37,6 @@ function saveToStorage(segments: BuilderSegment[]) {
     }
 }
 
-function truncateText(text: string, maxLength: number = 60): string {
-    if (text.length <= maxLength) {
-        return text;
-    }
-    return text.slice(0, maxLength).trimEnd() + "\u2026";
-}
-
 export function segmentFromQuote(quote: Quote, audioId: string): BuilderSegment {
     const charId = resolveCharId(audioId, quote.characterId ?? "", quote.audioCharMap);
     const clipText = quote.audioTextMap?.[audioId] ?? quote.text;
@@ -52,7 +45,7 @@ export function segmentFromQuote(quote: Quote, audioId: string): BuilderSegment 
         audioId,
         charId,
         characterName: quote.character,
-        quoteText: truncateText(clipText),
+        quoteText: clipText,
         episode: quote.episode,
     };
 }
@@ -144,12 +137,13 @@ export function useVoiceBuilder() {
 
                 try {
                     const quote = await getQuoteByAudioId(audioId, language);
+                    const clipText = quote.audioTextMap?.[audioId] ?? quote.text;
                     newSegments.push({
                         id: crypto.randomUUID(),
                         audioId,
                         charId,
                         characterName: quote.character,
-                        quoteText: truncateText(quote.text),
+                        quoteText: clipText,
                         episode: quote.episode,
                     });
                 } catch {

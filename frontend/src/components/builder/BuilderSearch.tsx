@@ -161,7 +161,8 @@ export function BuilderSearch({ builder, audioPlayer }: BuilderSearchProps) {
                         <>
                             <div className="builder-search-info">
                                 Showing {offset + 1}&ndash;{Math.min(offset + PAGE_SIZE, total)} of {total} results
-                                (audio only)
+                                (audio only) &mdash;{" "}
+                                <span className="builder-search-hint">click on text to add a clip</span>
                             </div>
                             <div className="builder-results">
                                 {audioQuotes.map((quote, i) => {
@@ -172,11 +173,39 @@ export function BuilderSearch({ builder, audioPlayer }: BuilderSearchProps) {
                                         <div key={`${quote.audioId}-${i}`} className="builder-result">
                                             <div className="builder-result-text">
                                                 <span className="builder-result-quote">
-                                                    {"\u201C"}
-                                                    {quote.text.length > 80
-                                                        ? quote.text.slice(0, 80).trimEnd() + "\u2026"
-                                                        : quote.text}
-                                                    {"\u201D"}
+                                                    {hasMultiple && quote.audioTextMap ? (
+                                                        ids.map((id, j) => {
+                                                            const fragment = quote.audioTextMap?.[id] ?? id;
+                                                            return (
+                                                                <span
+                                                                    key={id}
+                                                                    className={`builder-clip-text${!builder.canAdd ? " disabled" : ""}`}
+                                                                    onClick={() => {
+                                                                        if (builder.canAdd) {
+                                                                            handleAddQuote(quote, id);
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    {j === 0 ? "\u201C" : " "}
+                                                                    {fragment}
+                                                                    {j === ids.length - 1 ? "\u201D" : ""}
+                                                                </span>
+                                                            );
+                                                        })
+                                                    ) : (
+                                                        <span
+                                                            className={`builder-clip-text${!builder.canAdd ? " disabled" : ""}`}
+                                                            onClick={() => {
+                                                                if (builder.canAdd) {
+                                                                    handleAddQuote(quote, ids[0]);
+                                                                }
+                                                            }}
+                                                        >
+                                                            {"\u201C"}
+                                                            {quote.text}
+                                                            {"\u201D"}
+                                                        </span>
+                                                    )}
                                                 </span>
                                                 <span className="builder-result-meta">
                                                     {"\u2014 "}
@@ -186,47 +215,25 @@ export function BuilderSearch({ builder, audioPlayer }: BuilderSearchProps) {
                                             </div>
                                             <div className="builder-result-actions">
                                                 {hasMultiple ? (
-                                                    <>
-                                                        <button
-                                                            className="builder-result-btn builder-add-all-btn"
-                                                            onClick={() => handleAddAll(quote)}
-                                                            disabled={!builder.canAdd}
-                                                            title={`Add all ${ids.length} clips`}
-                                                        >
-                                                            {`+ All (${ids.length})`}
-                                                        </button>
-                                                        {ids.map(id => (
-                                                            <button
-                                                                key={id}
-                                                                className="builder-result-btn builder-clip-btn"
-                                                                onClick={() => handleAddQuote(quote, id)}
-                                                                disabled={!builder.canAdd}
-                                                                title={`Add ${id}`}
-                                                            >
-                                                                + {id.length > 12 ? id.slice(0, 12) + "\u2026" : id}
-                                                            </button>
-                                                        ))}
-                                                    </>
+                                                    <button
+                                                        className="builder-result-btn builder-add-all-btn"
+                                                        onClick={() => handleAddAll(quote)}
+                                                        disabled={!builder.canAdd}
+                                                        title={`Add all ${ids.length} clips`}
+                                                    >
+                                                        {`+ All (${ids.length})`}
+                                                    </button>
                                                 ) : (
-                                                    <>
-                                                        <button
-                                                            className="builder-result-btn builder-preview-btn"
-                                                            onClick={() => handlePreviewClip(quote, ids[0])}
-                                                            title="Preview"
-                                                        >
-                                                            {audioPlayer.state.activeId === `preview-${ids[0]}` &&
-                                                            audioPlayer.state.isPlaying
-                                                                ? "\u275A\u275A"
-                                                                : "\u25B6"}
-                                                        </button>
-                                                        <button
-                                                            className="builder-result-btn builder-add-btn"
-                                                            onClick={() => handleAddQuote(quote, ids[0])}
-                                                            disabled={!builder.canAdd}
-                                                        >
-                                                            + Add
-                                                        </button>
-                                                    </>
+                                                    <button
+                                                        className="builder-result-btn builder-preview-btn"
+                                                        onClick={() => handlePreviewClip(quote, ids[0])}
+                                                        title="Preview"
+                                                    >
+                                                        {audioPlayer.state.activeId === `preview-${ids[0]}` &&
+                                                        audioPlayer.state.isPlaying
+                                                            ? "\u275A\u275A"
+                                                            : "\u25B6"}
+                                                    </button>
                                                 )}
                                             </div>
                                         </div>
