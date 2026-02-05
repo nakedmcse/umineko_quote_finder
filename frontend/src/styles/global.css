@@ -1986,7 +1986,9 @@ body {
     font-size: 0.65em;
     color: var(--text-muted);
     opacity: 0.6;
-    transition: opacity 0.2s var(--ease-out), color 0.2s var(--ease-out);
+    transition:
+        opacity 0.2s var(--ease-out),
+        color 0.2s var(--ease-out);
     flex-shrink: 0;
 }
 
