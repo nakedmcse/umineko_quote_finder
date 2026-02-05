@@ -176,34 +176,61 @@ export function BuilderSearch({ builder, audioPlayer }: BuilderSearchProps) {
                                                     {hasMultiple && quote.audioTextMap ? (
                                                         ids.map((id, j) => {
                                                             const fragment = quote.audioTextMap?.[id] ?? id;
+                                                            const previewing =
+                                                                audioPlayer.state.activeId === `preview-${id}` &&
+                                                                audioPlayer.state.isPlaying;
                                                             return (
-                                                                <span
-                                                                    key={id}
-                                                                    className={`builder-clip-text${!builder.canAdd ? " disabled" : ""}`}
-                                                                    onClick={() => {
-                                                                        if (builder.canAdd) {
-                                                                            handleAddQuote(quote, id);
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    {j === 0 ? "\u201C" : " "}
-                                                                    {fragment}
-                                                                    {j === ids.length - 1 ? "\u201D" : ""}
+                                                                <span key={id} className="builder-clip-wrap">
+                                                                    <span
+                                                                        className="builder-clip-preview"
+                                                                        onClick={e => {
+                                                                            e.stopPropagation();
+                                                                            handlePreviewClip(quote, id);
+                                                                        }}
+                                                                    >
+                                                                        {previewing ? "\u275A\u275A" : "\u25B6"}
+                                                                    </span>
+                                                                    <span
+                                                                        className={`builder-clip-text${!builder.canAdd ? " disabled" : ""}`}
+                                                                        onClick={() => {
+                                                                            if (builder.canAdd) {
+                                                                                handleAddQuote(quote, id);
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        {j === 0 ? "\u201C" : ""}
+                                                                        {fragment}
+                                                                        {j === ids.length - 1 ? "\u201D" : ""}
+                                                                    </span>
                                                                 </span>
                                                             );
                                                         })
                                                     ) : (
-                                                        <span
-                                                            className={`builder-clip-text${!builder.canAdd ? " disabled" : ""}`}
-                                                            onClick={() => {
-                                                                if (builder.canAdd) {
-                                                                    handleAddQuote(quote, ids[0]);
-                                                                }
-                                                            }}
-                                                        >
-                                                            {"\u201C"}
-                                                            {quote.text}
-                                                            {"\u201D"}
+                                                        <span className="builder-clip-wrap">
+                                                            <span
+                                                                className="builder-clip-preview"
+                                                                onClick={e => {
+                                                                    e.stopPropagation();
+                                                                    handlePreviewClip(quote, ids[0]);
+                                                                }}
+                                                            >
+                                                                {audioPlayer.state.activeId === `preview-${ids[0]}` &&
+                                                                audioPlayer.state.isPlaying
+                                                                    ? "\u275A\u275A"
+                                                                    : "\u25B6"}
+                                                            </span>
+                                                            <span
+                                                                className={`builder-clip-text${!builder.canAdd ? " disabled" : ""}`}
+                                                                onClick={() => {
+                                                                    if (builder.canAdd) {
+                                                                        handleAddQuote(quote, ids[0]);
+                                                                    }
+                                                                }}
+                                                            >
+                                                                {"\u201C"}
+                                                                {quote.text}
+                                                                {"\u201D"}
+                                                            </span>
                                                         </span>
                                                     )}
                                                 </span>
@@ -213,8 +240,8 @@ export function BuilderSearch({ builder, audioPlayer }: BuilderSearchProps) {
                                                     {quote.episode ? ` \u00B7 ${episodeLabel(quote)}` : ""}
                                                 </span>
                                             </div>
-                                            <div className="builder-result-actions">
-                                                {hasMultiple ? (
+                                            {hasMultiple && (
+                                                <div className="builder-result-actions">
                                                     <button
                                                         className="builder-result-btn builder-add-all-btn"
                                                         onClick={() => handleAddAll(quote)}
@@ -223,19 +250,8 @@ export function BuilderSearch({ builder, audioPlayer }: BuilderSearchProps) {
                                                     >
                                                         {`+ All (${ids.length})`}
                                                     </button>
-                                                ) : (
-                                                    <button
-                                                        className="builder-result-btn builder-preview-btn"
-                                                        onClick={() => handlePreviewClip(quote, ids[0])}
-                                                        title="Preview"
-                                                    >
-                                                        {audioPlayer.state.activeId === `preview-${ids[0]}` &&
-                                                        audioPlayer.state.isPlaying
-                                                            ? "\u275A\u275A"
-                                                            : "\u25B6"}
-                                                    </button>
-                                                )}
-                                            </div>
+                                                </div>
+                                            )}
                                         </div>
                                     );
                                 })}

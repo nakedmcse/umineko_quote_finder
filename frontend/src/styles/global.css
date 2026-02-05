@@ -1947,7 +1947,6 @@ body {
     cursor: pointer;
     border-radius: 4px;
     padding: 2px 4px;
-    margin: 0 3px;
     border-bottom: 1px dashed rgba(var(--gold-rgb), 0.4);
     background: rgba(var(--gold-rgb), 0.06);
     transition:
@@ -1973,6 +1972,27 @@ body {
 .builder-clip-text.disabled:hover {
     background: transparent;
     color: inherit;
+}
+
+.builder-clip-wrap {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 2px;
+    margin: 2px 3px;
+}
+
+.builder-clip-preview {
+    cursor: pointer;
+    font-size: 0.65em;
+    color: var(--text-muted);
+    opacity: 0.6;
+    transition: opacity 0.2s var(--ease-out), color 0.2s var(--ease-out);
+    flex-shrink: 0;
+}
+
+.builder-clip-preview:hover {
+    opacity: 1;
+    color: var(--gold);
 }
 
 .builder-add-btn,
