@@ -75,5 +75,8 @@ export function AudioControls({ audioPlayer, isVisible }: AudioControlsProps) {
 
 function updateSliderFill(slider: HTMLInputElement) {
     const pct = slider.value;
-    slider.style.background = `linear-gradient(to right, #d4a84b 0%, #d4a84b ${pct}%, #3d2a5c ${pct}%, #3d2a5c 100%)`;
+    const style = getComputedStyle(document.documentElement);
+    const gold = style.getPropertyValue("--gold").trim();
+    const purpleMuted = style.getPropertyValue("--purple-muted").trim();
+    slider.style.background = `linear-gradient(to right, ${gold} 0%, ${gold} ${pct}%, ${purpleMuted} ${pct}%, ${purpleMuted} 100%)`;
 }

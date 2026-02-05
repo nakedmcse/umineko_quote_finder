@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Bar } from "react-chartjs-2";
-import { zoomConfig } from "./chartConfig";
+import { getGridColour, getThemeColours, zoomConfig } from "./chartConfig";
 import type { StatsResponse } from "../../types/api";
 import type { Chart } from "chart.js";
 
@@ -18,6 +18,8 @@ export function InteractionsChart({ data, onRegister }: InteractionsChartProps) 
         }
     }, [onRegister]);
 
+    const tc = getThemeColours();
+    const gridColour = getGridColour();
     const labels = data.interactions.map(i => `${i.nameA} & ${i.nameB}`);
     const counts = data.interactions.map(i => i.count);
 
@@ -30,8 +32,8 @@ export function InteractionsChart({ data, onRegister }: InteractionsChartProps) 
                     {
                         label: "Adjacent Lines",
                         data: counts,
-                        backgroundColor: "#9d7bc9",
-                        borderColor: "#6b4c9a",
+                        backgroundColor: tc.purpleLight,
+                        borderColor: tc.purple,
                         borderWidth: 1,
                     },
                 ],
@@ -46,12 +48,12 @@ export function InteractionsChart({ data, onRegister }: InteractionsChartProps) 
                 },
                 scales: {
                     x: {
-                        grid: { color: "rgba(61, 42, 92, 0.4)" },
-                        ticks: { color: "#a89bb8" },
+                        grid: { color: gridColour },
+                        ticks: { color: tc.textMuted },
                     },
                     y: {
                         grid: { display: false },
-                        ticks: { color: "#e8e0f0", font: { size: 11 } },
+                        ticks: { color: tc.text, font: { size: 11 } },
                     },
                 },
             }}

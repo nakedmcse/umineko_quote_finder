@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Bar } from "react-chartjs-2";
-import { zoomConfig } from "./chartConfig";
+import { getGridColour, getThemeColours, zoomConfig } from "./chartConfig";
 import type { StatsResponse } from "../../types/api";
 import type { Chart } from "chart.js";
 
@@ -18,6 +18,8 @@ export function TruthChart({ data, onRegister }: TruthChartProps) {
         }
     }, [onRegister]);
 
+    const tc = getThemeColours();
+    const gridColour = getGridColour();
     const labels = data.truthPerEpisode.map(t => `EP${t.episode}`);
     const redData = data.truthPerEpisode.map(t => t.red);
     const blueData = data.truthPerEpisode.map(t => t.blue);
@@ -50,18 +52,18 @@ export function TruthChart({ data, onRegister }: TruthChartProps) {
                 plugins: {
                     legend: {
                         position: "bottom",
-                        labels: { color: "#a89bb8" },
+                        labels: { color: tc.textMuted },
                     },
                     zoom: zoomConfig,
                 },
                 scales: {
                     x: {
-                        grid: { color: "rgba(61, 42, 92, 0.4)" },
-                        ticks: { color: "#a89bb8" },
+                        grid: { color: gridColour },
+                        ticks: { color: tc.textMuted },
                     },
                     y: {
-                        grid: { color: "rgba(61, 42, 92, 0.4)" },
-                        ticks: { color: "#a89bb8" },
+                        grid: { color: gridColour },
+                        ticks: { color: tc.textMuted },
                     },
                 },
             }}

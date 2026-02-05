@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Bar } from "react-chartjs-2";
-import { PALETTE, zoomConfig } from "./chartConfig";
+import { getGridColour, getPalette, getThemeColours, zoomConfig } from "./chartConfig";
 import type { StatsResponse } from "../../types/api";
 import type { Chart } from "chart.js";
 
@@ -19,12 +19,15 @@ export function PresenceChart({ data, onRegister }: PresenceChartProps) {
     }, [onRegister]);
 
     const epLabels = Array.from({ length: 8 }, (_, i) => `EP${i + 1}`);
+    const palette = getPalette();
+    const tc = getThemeColours();
+    const gridColour = getGridColour();
 
     const datasets = data.characterPresence.map((cp, i) => ({
         label: cp.name,
         data: cp.episodes,
-        backgroundColor: PALETTE[i % PALETTE.length],
-        borderColor: PALETTE[i % PALETTE.length],
+        backgroundColor: palette[i % palette.length],
+        borderColor: palette[i % palette.length],
         borderWidth: 1,
     }));
 
@@ -38,18 +41,18 @@ export function PresenceChart({ data, onRegister }: PresenceChartProps) {
                 plugins: {
                     legend: {
                         position: "bottom",
-                        labels: { color: "#a89bb8", boxWidth: 12 },
+                        labels: { color: tc.textMuted, boxWidth: 12 },
                     },
                     zoom: zoomConfig,
                 },
                 scales: {
                     x: {
-                        grid: { color: "rgba(61, 42, 92, 0.4)" },
-                        ticks: { color: "#a89bb8" },
+                        grid: { color: gridColour },
+                        ticks: { color: tc.textMuted },
                     },
                     y: {
-                        grid: { color: "rgba(61, 42, 92, 0.4)" },
-                        ticks: { color: "#a89bb8" },
+                        grid: { color: gridColour },
+                        ticks: { color: tc.textMuted },
                     },
                 },
             }}

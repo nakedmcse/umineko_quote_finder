@@ -1,17 +1,42 @@
-export const PALETTE = [
-    "#d4a84b",
-    "#9d7bc9",
-    "#ff3333",
-    "#3399ff",
-    "#6b4c9a",
-    "#f0d590",
-    "#8b2942",
-    "#a67c2e",
-    "#3d2a5c",
-    "#e8e0f0",
-    "#c97bb4",
-    "#7bc9a3",
-];
+function css(name: string): string {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+export function getThemeColours() {
+    return {
+        gold: css("--gold"),
+        goldDark: css("--gold-dark"),
+        goldLight: css("--gold-light"),
+        purple: css("--purple"),
+        purpleLight: css("--purple-light"),
+        purpleMuted: css("--purple-muted"),
+        text: css("--text"),
+        textMuted: css("--text-muted"),
+        rose: css("--rose"),
+    };
+}
+
+export function getPalette(): string[] {
+    const c = getThemeColours();
+    return [
+        c.gold,
+        c.purpleLight,
+        "#ff3333",
+        "#3399ff",
+        c.purple,
+        c.goldLight,
+        c.rose,
+        c.goldDark,
+        c.purpleMuted,
+        c.text,
+        "#c97bb4",
+        "#7bc9a3",
+    ];
+}
+
+export function getGridColour(): string {
+    return `rgba(${css("--purple-rgb")}, 0.4)`;
+}
 
 export const zoomConfig = {
     zoom: {

@@ -1,4 +1,5 @@
 import type { Language } from "../../types/app";
+import { ThemeSelector } from "./ThemeSelector";
 
 interface HeaderProps {
     language: Language;
@@ -12,6 +13,7 @@ export function Header({ language, onLanguageChange, onStatsClick }: HeaderProps
             <div className="ornament">{"\u2726 \u2726 \u2726"}</div>
             <h1 className="title">Umineko Quotes</h1>
             <p className="subtitle">When the seagulls cry, none shall remain</p>
+            <ThemeSelector />
             <div className="language-selector">
                 <button
                     className={`lang-btn${language === "en" ? " active" : ""}`}

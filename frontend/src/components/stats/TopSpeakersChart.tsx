@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Bar } from "react-chartjs-2";
-import { zoomConfig } from "./chartConfig";
+import { getGridColour, getThemeColours, zoomConfig } from "./chartConfig";
 import type { StatsResponse } from "../../types/api";
 import type { Chart } from "chart.js";
 
@@ -18,6 +18,8 @@ export function TopSpeakersChart({ data, onRegister }: TopSpeakersChartProps) {
         }
     }, [onRegister]);
 
+    const tc = getThemeColours();
+    const gridColour = getGridColour();
     const labels = data.topSpeakers.map(s => s.name);
     const counts = data.topSpeakers.map(s => s.count);
 
@@ -30,8 +32,8 @@ export function TopSpeakersChart({ data, onRegister }: TopSpeakersChartProps) {
                     {
                         label: "Lines",
                         data: counts,
-                        backgroundColor: "#d4a84b",
-                        borderColor: "#a67c2e",
+                        backgroundColor: tc.gold,
+                        borderColor: tc.goldDark,
                         borderWidth: 1,
                     },
                 ],
@@ -46,12 +48,12 @@ export function TopSpeakersChart({ data, onRegister }: TopSpeakersChartProps) {
                 },
                 scales: {
                     x: {
-                        grid: { color: "rgba(61, 42, 92, 0.4)" },
-                        ticks: { color: "#a89bb8" },
+                        grid: { color: gridColour },
+                        ticks: { color: tc.textMuted },
                     },
                     y: {
                         grid: { display: false },
-                        ticks: { color: "#e8e0f0" },
+                        ticks: { color: tc.text },
                     },
                 },
             }}

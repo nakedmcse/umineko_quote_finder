@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Bar } from "react-chartjs-2";
-import { PALETTE, zoomConfig } from "./chartConfig";
+import { getGridColour, getPalette, getThemeColours, zoomConfig } from "./chartConfig";
 import type { StatsResponse } from "../../types/api";
 import type { Chart } from "chart.js";
 
@@ -19,6 +19,9 @@ export function LinesPerEpisodeChart({ data, onRegister }: LinesPerEpisodeChartP
     }, [onRegister]);
 
     const epLabels = data.linesPerEpisode.map(ep => `EP${ep.episode} ${ep.episodeName}`);
+    const palette = getPalette();
+    const tc = getThemeColours();
+    const gridColour = getGridColour();
 
     const charSet = new Set<string>();
     for (const ep of data.linesPerEpisode) {
@@ -33,7 +36,7 @@ export function LinesPerEpisodeChart({ data, onRegister }: LinesPerEpisodeChartP
     const datasets = charIds.map((id, ci) => ({
         label: id === "other" ? "Other" : data.characterNames[id] || id,
         data: data.linesPerEpisode.map(ep => ep.characters[id] || 0),
-        backgroundColor: PALETTE[ci % PALETTE.length],
+        backgroundColor: palette[ci % palette.length],
     }));
 
     return (
@@ -46,20 +49,20 @@ export function LinesPerEpisodeChart({ data, onRegister }: LinesPerEpisodeChartP
                 plugins: {
                     legend: {
                         position: "bottom",
-                        labels: { color: "#a89bb8", boxWidth: 12 },
+                        labels: { color: tc.textMuted, boxWidth: 12 },
                     },
                     zoom: zoomConfig,
                 },
                 scales: {
                     x: {
                         stacked: true,
-                        grid: { color: "rgba(61, 42, 92, 0.4)" },
-                        ticks: { color: "#a89bb8" },
+                        grid: { color: gridColour },
+                        ticks: { color: tc.textMuted },
                     },
                     y: {
                         stacked: true,
-                        grid: { color: "rgba(61, 42, 92, 0.4)" },
-                        ticks: { color: "#a89bb8" },
+                        grid: { color: gridColour },
+                        ticks: { color: tc.textMuted },
                     },
                 },
             }}
